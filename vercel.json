@@ -1,0 +1,53 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/public",
+  "installCommand": "npm install",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/assets/:path*",
+      "destination": "/assets/:path*"
+    },
+    {
+      "source": "/:path*.js",
+      "destination": "/:path*.js"
+    },
+    {
+      "source": "/:path*.css",
+      "destination": "/:path*.css"
+    },
+    {
+      "source": "/:path*.png",
+      "destination": "/:path*.png"
+    },
+    {
+      "source": "/:path*.glb",
+      "destination": "/:path*.glb"
+    },
+    {
+      "source": "/:path*.gltf",
+      "destination": "/:path*.gltf"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Cross-Origin-Embedder-Policy", "value": "credentialless" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" }
+      ]
+    }
+  ]
+}

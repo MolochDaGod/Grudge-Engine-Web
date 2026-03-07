@@ -1,0 +1,11 @@
+Model Information:
+* title:	Dragon Fly
+* source:	https://sketchfab.com/3d-models/dragon-fly-1443a7efe5d5450b8db4c15d8ff5c343
+* author:	LostBoyz2078 (https://sketchfab.com/LostModels2025)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Dragon Fly" (https://sketchfab.com/3d-models/dragon-fly-1443a7efe5d5450b8db4c15d8ff5c343) by LostBoyz2078 (https://sketchfab.com/LostModels2025) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Summoner'sWarLC - Warbear (With Animations)
+* source:	https://sketchfab.com/3d-models/summonerswarlc-warbear-with-animations-99e4c5a2e26e41dda07a937e0862b51f
+* author:	Otherspectre (https://sketchfab.com/Otherspectre)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Summoner'sWarLC - Warbear (With Animations)" (https://sketchfab.com/3d-models/summonerswarlc-warbear-with-animations-99e4c5a2e26e41dda07a937e0862b51f) by Otherspectre (https://sketchfab.com/Otherspectre) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
