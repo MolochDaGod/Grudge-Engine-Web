@@ -4,6 +4,7 @@ import { grudgeWarlordsScenes } from './grudge-warlords-scenes';
 import { grudaWarsScenes } from './gruda-wars-scenes';
 import { oceanAnglerScenes } from './ocean-angler-scenes';
 import { grudgeBuilderScenes } from './grudge-builder-scenes';
+import { rtsFactionScenes } from './rts-faction-scene';
 
 export interface RPGSceneConfig {
   id: string;
@@ -29,6 +30,7 @@ export interface RPGSceneState {
 export const GAME_GROUPS = [
   { id: 'grudge-warlords', name: 'Grudge Warlords', icon: '⚔️' },
   { id: 'gruda-wars', name: 'GRUDA Wars', icon: '🏰' },
+  { id: 'rts-factions', name: 'RTS Factions', icon: '🪓' },
   { id: 'ocean-angler', name: 'Ocean Angler', icon: '🎣' },
   { id: 'grudge-builder', name: 'Grudge Builder', icon: '🔨' },
   { id: 'common', name: 'Common Environments', icon: '🌍' },
@@ -38,6 +40,7 @@ export const GAME_GROUPS = [
 const ALL_SCENES: RPGSceneConfig[] = [
   ...grudgeWarlordsScenes,
   ...grudaWarsScenes,
+  ...rtsFactionScenes,
   ...oceanAnglerScenes,
   ...grudgeBuilderScenes,
   ...commonScenes,

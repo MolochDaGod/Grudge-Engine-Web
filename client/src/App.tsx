@@ -6,12 +6,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DebugErrorBoundary, DebugWorkerProvider } from "@/components/debug-error-boundary";
 import { AuthProvider } from "@/contexts/AuthContext";
 import EditorPage from "@/pages/editor";
+import RTSScenePage from "@/pages/rts-scene";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={EditorPage} />
+      <Route path="/gge-scene" component={RTSScenePage} />
       <Route component={NotFound} />
     </Switch>
   );

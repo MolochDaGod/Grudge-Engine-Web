@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Download, ExternalLink, Box, FileImage, Music, Layers, Filter, Star, Globe } from 'lucide-react';
+import { Search, Download, ExternalLink, Box, FileImage, Music, Layers, Filter, Star, Globe, Swords, Shield, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEngineStore } from '@/lib/engine-store';
 import { cn } from '@/lib/utils';
+import { FACTIONS, type FactionId } from '@/lib/faction-assets';
+
+type FactionTag = 'orc' | 'elf' | 'human' | 'neutral';
 
 interface FreeAsset {
   id: string;
@@ -18,6 +21,7 @@ interface FreeAsset {
   downloadUrl?: string;
   tags: string[];
   license: 'CC0' | 'CC-BY' | 'Free';
+  factionTags?: FactionTag[];
 }
 
 const FREE_ASSET_SOURCES: FreeAsset[] = [
@@ -44,11 +48,30 @@ const FREE_ASSET_SOURCES: FreeAsset[] = [
   { id: 'k-6', name: 'UI Pack', type: 'texture', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/ui-pack', tags: ['ui', 'buttons', 'interface'], license: 'CC0' },
   
   // Quaternius 3D Models
-  { id: 'q-1', name: 'Ultimate Characters', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/ultimatecharacters.html', tags: ['characters', 'humanoid', 'animated'], license: 'CC0' },
+  { id: 'q-1', name: 'Ultimate Characters', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/ultimatecharacters.html', tags: ['characters', 'humanoid', 'animated'], license: 'CC0', factionTags: ['human', 'neutral'] },
   { id: 'q-2', name: 'Low Poly Vehicles', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/lowpolyvehicles.html', tags: ['vehicles', 'cars', 'lowpoly'], license: 'CC0' },
-  { id: 'q-3', name: 'Fantasy Town', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/fantasytown.html', tags: ['fantasy', 'buildings', 'medieval'], license: 'CC0' },
+  { id: 'q-3', name: 'Fantasy Town', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/fantasytown.html', tags: ['fantasy', 'buildings', 'medieval'], license: 'CC0', factionTags: ['human', 'neutral'] },
   { id: 'q-4', name: 'Animated Animals', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/animatedanimals.html', tags: ['animals', 'animated', 'nature'], license: 'CC0' },
-  
+
+  // CraftPix Low-Poly RTS Packs
+  { id: 'cp-1', name: 'Low Poly Orc Buildings', type: 'model', source: 'CraftPix', sourceUrl: 'https://craftpix.net/freebies/free-orc-buildings-3d-low-poly-pack/', tags: ['orc', 'buildings', 'lowpoly', 'rts'], license: 'Free', factionTags: ['orc'] },
+  { id: 'cp-2', name: 'Low Poly Elf Buildings', type: 'model', source: 'CraftPix', sourceUrl: 'https://craftpix.net/freebies/free-elf-buildings-3d-low-poly-pack/', tags: ['elf', 'buildings', 'lowpoly', 'rts'], license: 'Free', factionTags: ['elf'] },
+  { id: 'cp-3', name: 'Low Poly Castle Buildings', type: 'model', source: 'CraftPix', sourceUrl: 'https://craftpix.net/freebies/free-castle-buildings-3d-low-poly-pack/', tags: ['human', 'castle', 'buildings', 'lowpoly', 'rts'], license: 'Free', factionTags: ['human'] },
+  { id: 'cp-4', name: 'Low Poly Siege Weapons', type: 'model', source: 'CraftPix', sourceUrl: 'https://craftpix.net/freebies/free-siege-weapons-3d-low-poly-models/', tags: ['siege', 'weapons', 'catapult', 'lowpoly'], license: 'Free', factionTags: ['orc', 'elf', 'human'] },
+  { id: 'cp-5', name: 'Low Poly Nature Props', type: 'model', source: 'CraftPix', sourceUrl: 'https://craftpix.net/freebies/free-nature-props-3d-low-poly-pack/', tags: ['nature', 'trees', 'rocks', 'terrain'], license: 'Free', factionTags: ['neutral'] },
+  { id: 'cp-6', name: 'Low Poly Medieval Weapons', type: 'model', source: 'CraftPix', sourceUrl: 'https://craftpix.net/freebies/free-medieval-weapons-3d-low-poly-pack/', tags: ['weapons', 'sword', 'axe', 'medieval'], license: 'Free', factionTags: ['orc', 'elf', 'human'] },
+
+  // KayKit Game Assets
+  { id: 'kk-1', name: 'KayKit Adventurers', type: 'model', source: 'KayKit', sourceUrl: 'https://kaylousberg.itch.io/kaykit-adventurers', tags: ['characters', 'adventurer', 'animated', 'lowpoly'], license: 'CC0', factionTags: ['human', 'neutral'] },
+  { id: 'kk-2', name: 'KayKit Skeletons', type: 'model', source: 'KayKit', sourceUrl: 'https://kaylousberg.itch.io/kaykit-skeletons', tags: ['skeleton', 'undead', 'animated', 'lowpoly'], license: 'CC0', factionTags: ['orc', 'neutral'] },
+  { id: 'kk-3', name: 'KayKit Medieval Builder', type: 'model', source: 'KayKit', sourceUrl: 'https://kaylousberg.itch.io/kaykit-medieval-builder-pack', tags: ['medieval', 'buildings', 'walls', 'lowpoly'], license: 'CC0', factionTags: ['human', 'neutral'] },
+  { id: 'kk-4', name: 'KayKit Dungeon Remastered', type: 'model', source: 'KayKit', sourceUrl: 'https://kaylousberg.itch.io/kaykit-dungeon-remastered', tags: ['dungeon', 'tiles', 'interior', 'lowpoly'], license: 'CC0', factionTags: ['neutral'] },
+
+  // Toon_RTS (local asset pack)
+  { id: 'trts-1', name: 'Toon RTS — Orc Pack', type: 'model', source: 'Toon_RTS (Local)', sourceUrl: 'file:///D:/Games/Models/Toon_RTS', tags: ['orc', 'characters', 'cavalry', 'animated', 'rts'], license: 'Free', factionTags: ['orc'] },
+  { id: 'trts-2', name: 'Toon RTS — Elf Pack', type: 'model', source: 'Toon_RTS (Local)', sourceUrl: 'file:///D:/Games/Models/Toon_RTS', tags: ['elf', 'characters', 'cavalry', 'animated', 'rts'], license: 'Free', factionTags: ['elf'] },
+  { id: 'trts-3', name: 'Toon RTS — WesternKingdoms Pack', type: 'model', source: 'Toon_RTS (Local)', sourceUrl: 'file:///D:/Games/Models/Toon_RTS', tags: ['human', 'characters', 'cavalry', 'animated', 'rts'], license: 'Free', factionTags: ['human'] },
+
   // Free Audio
   { id: 'a-1', name: 'Retro Sound Effects', type: 'audio', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/voiceover-pack', tags: ['retro', 'sfx', '8bit'], license: 'CC0' },
   { id: 'a-2', name: 'Impact Sounds', type: 'audio', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/impact-sounds', tags: ['impact', 'sfx', 'action'], license: 'CC0' },
@@ -69,6 +92,7 @@ function getAssetIcon(type: string) {
 export function FreeAssetLibrary() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'model' | 'texture' | 'audio' | 'hdri'>('all');
+  const [factionFilter, setFactionFilter] = useState<'all' | FactionTag>('all');
   const [selectedAsset, setSelectedAsset] = useState<FreeAsset | null>(null);
   const { addConsoleLog, addAsset } = useEngineStore();
 
@@ -79,9 +103,10 @@ export function FreeAssetLibrary() {
         asset.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
         asset.source.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesFilter = activeFilter === 'all' || asset.type === activeFilter;
-      return matchesSearch && matchesFilter;
+      const matchesFaction = factionFilter === 'all' || !asset.factionTags || asset.factionTags.includes(factionFilter);
+      return matchesSearch && matchesFilter && matchesFaction;
     });
-  }, [searchQuery, activeFilter]);
+  }, [searchQuery, activeFilter, factionFilter]);
 
   const handleDownload = (asset: FreeAsset) => {
     window.open(asset.sourceUrl, '_blank');
@@ -107,11 +132,29 @@ export function FreeAssetLibrary() {
     });
   };
 
+  const handleImportToFaction = (asset: FreeAsset, faction: FactionId) => {
+    const assetType = asset.type === 'hdri' ? 'texture' : asset.type;
+    addAsset({
+      id: crypto.randomUUID(),
+      name: `[${FACTIONS[faction].name}] ${asset.name}`,
+      type: assetType as any,
+      path: `/assets/factions/${faction}/${assetType === 'model' ? 'units' : 'buildings'}/${asset.name.toLowerCase().replace(/\s+/g, '-')}`
+    });
+    addConsoleLog({
+      type: 'info',
+      message: `Imported ${asset.name} → ${FACTIONS[faction].name} faction`,
+      source: 'Asset Library'
+    });
+  };
+
   const sources = [
     { name: 'Poly Haven', url: 'https://polyhaven.com', description: 'CC0 HDRIs, textures, and 3D models' },
     { name: 'AmbientCG', url: 'https://ambientcg.com', description: 'CC0 PBR materials' },
     { name: 'Kenney', url: 'https://kenney.nl', description: 'CC0 game assets and audio' },
     { name: 'Quaternius', url: 'https://quaternius.com', description: 'CC0 low-poly 3D models' },
+    { name: 'CraftPix', url: 'https://craftpix.net/freebies/', description: 'Free low-poly RTS buildings, weapons, props' },
+    { name: 'KayKit', url: 'https://kaylousberg.itch.io/', description: 'CC0 low-poly game asset packs' },
+    { name: 'Toon_RTS', url: 'file:///D:/Games/Models/Toon_RTS', description: 'Local FBX packs — Orc, Elf, Human factions' },
     { name: 'Mixamo', url: 'https://mixamo.com', description: 'Free character animations (requires account)' },
     { name: 'Sketchfab', url: 'https://sketchfab.com/features/free-3d-models', description: 'Free 3D models (various licenses)' },
   ];
@@ -141,6 +184,24 @@ export function FreeAssetLibrary() {
             <TabsTrigger value="hdri" className="text-xs h-6 flex-1" data-testid="tab-hdri">HDRI</TabsTrigger>
           </TabsList>
         </Tabs>
+
+        {/* Faction filter row */}
+        <div className="flex items-center gap-1 mt-1.5">
+          <span className="text-[10px] text-muted-foreground mr-1"><Swords className="w-3 h-3 inline" /> Faction:</span>
+          {(['all', 'orc', 'elf', 'human', 'neutral'] as const).map(f => (
+            <Button
+              key={f}
+              variant={factionFilter === f ? 'default' : 'ghost'}
+              size="sm"
+              className={cn("h-5 text-[10px] px-1.5", factionFilter === f && f !== 'all' && f !== 'neutral' && 'text-white')}
+              style={factionFilter === f && f !== 'all' && f !== 'neutral' ? { backgroundColor: FACTIONS[f as FactionId].color } : undefined}
+              onClick={() => setFactionFilter(f)}
+              data-testid={`faction-filter-${f}`}
+            >
+              {f === 'all' ? 'All' : f === 'neutral' ? '⚪' : FACTIONS[f as FactionId].icon} {f !== 'all' && f !== 'neutral' ? FACTIONS[f as FactionId].name.split(' ')[0] : f === 'neutral' ? 'Neutral' : ''}
+            </Button>
+          ))}
+        </div>
       </div>
 
       <ScrollArea className="flex-1">
@@ -160,9 +221,34 @@ export function FreeAssetLibrary() {
                 <div className="text-xs font-medium truncate">{asset.name}</div>
                 <div className="text-[10px] text-muted-foreground">{asset.source}</div>
               </div>
+              {asset.factionTags && asset.factionTags.length > 0 && (
+                <div className="flex gap-0.5 shrink-0">
+                  {asset.factionTags.filter(t => t !== 'neutral').map(t => (
+                    <span key={t} className="text-[9px] px-1 rounded" style={{ backgroundColor: FACTIONS[t as FactionId]?.color + '30', color: FACTIONS[t as FactionId]?.color }}>
+                      {FACTIONS[t as FactionId]?.icon}
+                    </span>
+                  ))}
+                </div>
+              )}
               <Badge variant="outline" className="text-[10px] h-5 shrink-0">
                 {asset.license}
               </Badge>
+              {asset.factionTags && asset.type === 'model' && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 shrink-0 text-primary"
+                  title="Import to active faction"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const targetFaction = (asset.factionTags?.find(t => t !== 'neutral') ?? 'human') as FactionId;
+                    handleImportToFaction(asset, targetFaction);
+                  }}
+                  data-testid={`button-faction-import-${asset.id}`}
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
