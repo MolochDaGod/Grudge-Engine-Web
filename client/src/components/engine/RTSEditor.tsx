@@ -15,6 +15,9 @@ import { RTSEconomy, type FactionResources } from '@/lib/rts-economy';
 import { RTSAICommander } from '@/lib/rts-ai-commander';
 import { damageSystem } from '@/lib/engine/damage-system';
 import { RTSMinimap } from './RTSMinimap';
+import { BabylonCharacterBase, type CharacterOptions } from '@/lib/engine/babylon-character-base';
+import { getWeaponStyle, getWeaponStyleIds, type WeaponStyleId } from '@/lib/engine/weapon-styles';
+import { ANIMATION_SLOTS, type AnimSlot } from '@/lib/engine/animation-slots';
 
 interface PlacedObject {
   id: string;
@@ -44,7 +47,7 @@ export function RTSEditor() {
   const lastTimeRef = useRef(0);
 
   const [activeFaction, setActiveFaction] = useState<FactionId>('orc');
-  const [activeTab, setActiveTab] = useState<'buildings' | 'units' | 'siege' | 'terrain'>('buildings');
+  const [activeTab, setActiveTab] = useState<'buildings' | 'units' | 'siege' | 'terrain' | 'characters'>('buildings');
   const [selectedDef, setSelectedDef] = useState<string | null>(null);
   const [placedObjects, setPlacedObjects] = useState<PlacedObject[]>([]);
   const [consoleEntries, setConsoleEntries] = useState<ConsoleEntry[]>([]);
@@ -54,6 +57,15 @@ export function RTSEditor() {
   const [resources, setResources] = useState<FactionResources>({ gold: 500, wood: 300, stone: 100, food: 50, supply: 5, supplyMax: 15 });
   const [aiActive, setAiActive] = useState<Record<string, boolean>>({});
   const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
+
+  // ── Character Animation System ──
+  const characterRef = useRef<BabylonCharacterBase | null>(null);
+  const [charModelPath, setCharModelPath] = useState('/assets/models/character.glb');
+  const [charWeaponStyle, setCharWeaponStyle] = useState<WeaponStyleId>('greatsword');
+  const [charAnimList, setCharAnimList] = useState<string[]>([]);
+  const [charActiveAnim, setCharActiveAnim] = useState<string | null>(null);
+  const [charFSMState, setCharFSMState] = useState('loading');
+  const [charLoading, setCharLoading] = useState(false);
 
   const log = useCallback((type: ConsoleEntry['type'], message: string) => {
     setConsoleEntries(prev => [...prev.slice(-50), {
@@ -122,6 +134,71 @@ export function RTSEditor() {
     }
     return createFallbackMesh(defId, fallbackMesh as any, fallbackColor, scale, scene);
   }, [log, createFallbackMesh]);
+
+  // ── Character Loading ──
+  const loadCharacter = useCallback(async (modelPath: string, styleId: WeaponStyleId) => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+
+    // Dispose previous character
+    if (characterRef.current) {
+      characterRef.current.dispose();
+      characterRef.current = null;
+    }
+
+    setCharLoading(true);
+    setCharAnimList([]);
+    setCharActiveAnim(null);
+    setCharFSMState('loading');
+
+    try {
+      const style = getWeaponStyle(styleId);
+      const char = new BabylonCharacterBase(scene, {
+        modelPath,
+        weaponStyle: style,
+        position: new BABYLON.Vector3(0, 0, 0),
+        scale: 1,
+        characterId: 'editor_char',
+        enablePhysics: false,
+      });
+
+      char.onLoaded = () => {
+        const anims = char.getAnimationNames();
+        setCharAnimList(anims);
+        setCharActiveAnim(char.animController?.getActiveClipName() ?? null);
+        setCharFSMState(char.fsm?.getState() ?? 'idle');
+        log('info', `Character loaded: ${anims.length} animations, style: ${styleId}`);
+      };
+
+      await char.load();
+      characterRef.current = char;
+
+      // Wire into render loop for animation updates
+      scene.onBeforeRenderObservable.add(() => {
+        const dt = scene.getEngine().getDeltaTime() / 1000;
+        char.update(dt);
+        setCharFSMState(char.fsm?.getState() ?? 'idle');
+      });
+    } catch (err: any) {
+      log('error', `Failed to load character: ${err?.message ?? err}`);
+    } finally {
+      setCharLoading(false);
+    }
+  }, [log]);
+
+  const previewCharAnim = useCallback((animName: string) => {
+    if (!characterRef.current) return;
+    characterRef.current.previewAnimation(animName);
+    setCharActiveAnim(animName);
+    log('info', `Preview: ${animName}`);
+  }, [log]);
+
+  const sendCharFSMEvent = useCallback((event: string) => {
+    if (!characterRef.current?.fsm) return;
+    characterRef.current.fsm.send(event as any);
+    setCharFSMState(characterRef.current.fsm.getState());
+    log('info', `FSM event: ${event} → ${characterRef.current.fsm.getState()}`);
+  }, [log]);
 
   // Place an object in the scene
   const placeObject = useCallback(async (
@@ -475,6 +552,7 @@ export function RTSEditor() {
             <TabsTrigger value="units" className="text-xs flex-1 h-7">Units</TabsTrigger>
             <TabsTrigger value="siege" className="text-xs flex-1 h-7">Siege</TabsTrigger>
             <TabsTrigger value="terrain" className="text-xs flex-1 h-7">Terrain</TabsTrigger>
+            <TabsTrigger value="characters" className="text-xs flex-1 h-7">Chars</TabsTrigger>
           </TabsList>
 
           <ScrollArea className="flex-1">
@@ -548,6 +626,95 @@ export function RTSEditor() {
                   onSelect={() => setSelectedDef(selectedDef === t.id ? null : t.id)}
                 />
               ))}
+            </TabsContent>
+
+            <TabsContent value="characters" className="p-2 space-y-2 mt-0">
+              {/* Model Path */}
+              <div>
+                <label className="text-[10px] font-semibold uppercase text-muted-foreground">GLB Model Path</label>
+                <input
+                  type="text"
+                  value={charModelPath}
+                  onChange={(e) => setCharModelPath(e.target.value)}
+                  className="w-full mt-0.5 px-2 py-1 text-xs bg-background border border-border rounded"
+                  placeholder="/assets/models/character.glb"
+                />
+              </div>
+
+              {/* Weapon Style Selector */}
+              <div>
+                <label className="text-[10px] font-semibold uppercase text-muted-foreground">Weapon Style</label>
+                <div className="flex gap-1 flex-wrap mt-0.5">
+                  {getWeaponStyleIds().map(sid => (
+                    <Button
+                      key={sid}
+                      variant={charWeaponStyle === sid ? 'default' : 'outline'}
+                      size="sm"
+                      className="text-[10px] h-6 px-2"
+                      onClick={() => setCharWeaponStyle(sid)}
+                    >
+                      {sid.replace('_', ' ')}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Load Button */}
+              <Button
+                className="w-full h-7 text-xs"
+                onClick={() => loadCharacter(charModelPath, charWeaponStyle)}
+                disabled={charLoading}
+              >
+                {charLoading ? 'Loading...' : 'Load Character'}
+              </Button>
+
+              {/* FSM State */}
+              {characterRef.current && (
+                <div>
+                  <label className="text-[10px] font-semibold uppercase text-muted-foreground">FSM State</label>
+                  <div className="text-xs font-mono mt-0.5 px-2 py-1 bg-background border border-border rounded">
+                    {charFSMState}
+                  </div>
+                  <div className="flex gap-1 flex-wrap mt-1">
+                    {['run', 'attack', 'jump', 'dash', 'block', 'hit', 'stop', 'land'].map(evt => (
+                      <Button
+                        key={evt}
+                        variant="outline"
+                        size="sm"
+                        className="text-[10px] h-5 px-1.5"
+                        onClick={() => sendCharFSMEvent(evt)}
+                      >
+                        {evt}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Animation List */}
+              {charAnimList.length > 0 && (
+                <div>
+                  <label className="text-[10px] font-semibold uppercase text-muted-foreground">
+                    Animations ({charAnimList.length})
+                  </label>
+                  <div className="mt-0.5 space-y-0.5">
+                    {charAnimList.map(name => (
+                      <div
+                        key={name}
+                        className={cn(
+                          "px-2 py-0.5 text-xs rounded cursor-pointer transition-colors",
+                          charActiveAnim === name
+                            ? "bg-primary/20 text-primary border border-primary/30"
+                            : "hover:bg-accent"
+                        )}
+                        onClick={() => previewCharAnim(name)}
+                      >
+                        {name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </TabsContent>
           </ScrollArea>
         </Tabs>
