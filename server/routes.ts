@@ -6,25 +6,13 @@ import { z } from "zod";
 import { gameObjectSchema, assetSchema, sceneSchema, insertProjectSchema, insertSceneSchema, insertAssetSchema, scriptableObjectSchema, scriptableObjectTypeSchema, DEFAULT_LAYERS } from "@shared/schema";
 import { storageAdapter } from "./storage-adapter";
 import { registerObjectStoreProxyRoutes } from "./objectstore-proxy";
+import { registerStorageRoutes } from "./storage-routes";
 import * as path from "path";
 import * as fs from "fs";
 import { createRequire } from "module";
 import multer from "multer";
 import { isPuterAvailable, cloudStorage, kvStore, aiWorkers, checkCloudHealth, getCloudPaths, debugWorker, type ErrorReport } from "./puter-services";
 const require = createRequire(import.meta.url);
-
-// Try to load Replit object storage (optional fallback)
-let registerObjectStorageRoutes: ((app: Express) => void) | null = null;
-let ObjectStorageService: any = null;
-let objectStorageClient: any = null;
-try {
-  const replitStorage = await import("./replit_integrations/object_storage");
-  registerObjectStorageRoutes = replitStorage.registerObjectStorageRoutes;
-  ObjectStorageService = replitStorage.ObjectStorageService;
-  objectStorageClient = replitStorage.objectStorageClient;
-} catch {
-  console.log("Replit object storage not available, using portable storage adapter");
-}
 
 // Configure multer for FBX uploads
 const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'temp');
@@ -73,10 +61,8 @@ export async function registerRoutes(
   // Register ObjectStore proxy routes (always available)
   registerObjectStoreProxyRoutes(app);
   
-  // Register Replit object storage routes if available (legacy fallback)
-  if (registerObjectStorageRoutes) {
-    registerObjectStorageRoutes(app);
-  }
+  // Register portable storage routes (S3 / local)
+  registerStorageRoutes(app);
   
   app.get("/api/projects", async (req, res) => {
     try {

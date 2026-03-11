@@ -359,7 +359,7 @@ export function AssetBrowser() {
   };
 
   const getUploadParameters = async (file: { name: string; size: number | null; type?: string }) => {
-    const res = await fetch('/api/uploads/request-url', {
+    const res = await fetch('/api/storage/upload-url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -368,10 +368,21 @@ export function AssetBrowser() {
         contentType: file.type || 'application/octet-stream',
       }),
     });
-    const { uploadURL } = await res.json();
+    const data = await res.json();
+
+    // S3 presigned PUT flow
+    if (data.uploadUrl && !data.fallback) {
+      return {
+        method: 'PUT' as const,
+        url: data.uploadUrl,
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      };
+    }
+
+    // Fallback: POST to local storage endpoint (Uppy will handle as multipart)
     return {
       method: 'PUT' as const,
-      url: uploadURL,
+      url: data.uploadUrl || '/api/storage/upload',
       headers: { 'Content-Type': file.type || 'application/octet-stream' },
     };
   };
