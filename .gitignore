@@ -1,0 +1,16 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+# Large binary source assets (convert to GLB before committing)
+*.fbx
+*.FBX
+*.tga
+*.TGA
+public/assets/characters/races/*/equipment/*.fbx
+public/assets/characters/races/*/equipment/*.FBX
+public/assets/characters/races/*/animations/*.fbx
+public/assets/characters/races/*/animations/*.FBX
+public/assets/processing/

@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.env
+*.zip
+*.log
+logs/
+storage/
+attached_assets/**/*.zip

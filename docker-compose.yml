@@ -1,0 +1,26 @@
+services:
+  grudge-engine-web:
+    build: .
+    container_name: grudge-engine-web
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=5001
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grudge-engine-web.rule=Host(`engine.grudge-studio.com`)"
+      - "traefik.http.routers.grudge-engine-web.entrypoints=websecure"
+      - "traefik.http.routers.grudge-engine-web.tls=true"
+      - "traefik.http.routers.grudge-engine-web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.grudge-engine-web.loadbalancer.server.port=5001"
+    networks:
+      - grudge-net
+
+networks:
+  grudge-net:
+    external: true
+    name: coolify

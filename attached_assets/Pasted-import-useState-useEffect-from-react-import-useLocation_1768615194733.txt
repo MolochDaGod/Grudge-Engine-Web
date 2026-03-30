@@ -1,0 +1,576 @@
+import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LogIn, Loader2, UserPlus, Eye, EyeOff, Sparkles, Shield, Zap, Crown, User, Sword, Flame, Leaf, Wallet } from 'lucide-react';
+import { useAuth, type UserRole } from '@/contexts/AuthContext';
+import grudgeLogo from '@/assets/grudge-logo.png';
+
+const WEB3AUTH_CLIENT_ID = 'BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ';
+
+const WEB3AUTH_UI_CONFIG = {
+  appName: "GRUDGE Warlords",
+  appUrl: window.location.origin,
+  logoLight: "/grudge-logo.png",
+  logoDark: "/grudge-logo.png", 
+  defaultLanguage: "en" as const,
+  mode: "dark" as const,
+  theme: {
+    primary: "#f59e0b",
+    gray: "#1a1a2e",
+    white: "#e4e4e7",
+    dark: "#0a0a1a",
+  },
+};
+
+const ROLE_BADGES: Record<UserRole, { label: string; icon: React.ReactNode; color: string }> = {
+  admin: { label: 'Admin', icon: <Crown className="w-3 h-3" />, color: 'bg-red-500' },
+  developer: { label: 'Developer', icon: <Zap className="w-3 h-3" />, color: 'bg-purple-500' },
+  ai_agent: { label: 'AI Agent', icon: <Sparkles className="w-3 h-3" />, color: 'bg-cyan-500' },
+  premium: { label: 'Premium', icon: <Shield className="w-3 h-3" />, color: 'bg-amber-500' },
+  user: { label: 'User', icon: <User className="w-3 h-3" />, color: 'bg-green-500' },
+  guest: { label: 'Guest', icon: <User className="w-3 h-3" />, color: 'bg-slate-500' },
+};
+
+const FACTION_EMBLEMS = [
+  { 
+    id: 'order', 
+    name: 'Order', 
+    icon: <Shield className="w-5 h-5" />,
+    color: 'from-blue-500 to-cyan-400',
+    borderColor: 'border-blue-400',
+    races: ['Human', 'Elf', 'Dwarf']
+  },
+  { 
+    id: 'chaos', 
+    name: 'Chaos', 
+    icon: <Flame className="w-5 h-5" />,
+    color: 'from-red-500 to-orange-400',
+    borderColor: 'border-red-400',
+    races: ['Orc', 'Demon', 'Undead']
+  },
+  { 
+    id: 'neutral', 
+    name: 'Neutral', 
+    icon: <Leaf className="w-5 h-5" />,
+    color: 'from-green-500 to-emerald-400',
+    borderColor: 'border-green-400',
+    races: ['Beastkin', 'Golem']
+  },
+];
+
+export default function LoginPage() {
+  const [, setLocation] = useLocation();
+  const { user, isAuthenticated, signInWithPuter, signInWithCredentials, register, continueAsGuest, isPuterAvailable } = useAuth();
+  
+  const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPuterLoading, setIsPuterLoading] = useState(false);
+  const [isWeb3Loading, setIsWeb3Loading] = useState(false);
+  const [web3auth, setWeb3auth] = useState<any>(null);
+  const [solanaWallet, setSolanaWallet] = useState<{ address: string; balance: number } | null>(null);
+
+  const registerWalletUser = async (walletAddress: string, userInfo?: any): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress,
+          email: userInfo?.email,
+          name: userInfo?.name,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.user) {
+        const authUser = {
+          id: data.user.id,
+          username: data.user.username,
+          displayName: data.user.displayName || data.user.username,
+          role: data.user.isPremium ? 'premium' : 'user',
+          isPuterUser: false,
+          walletAddress: walletAddress,
+          createdAt: data.user.createdAt || new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        };
+        
+        localStorage.setItem('grudge_auth_user', JSON.stringify(authUser));
+        if (data.token) {
+          localStorage.setItem('grudge_auth_token', data.token);
+        }
+        
+        console.log('[Auth] Wallet user registered/logged in:', authUser.username);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to register wallet user:', error);
+      return false;
+    }
+  };
+
+  const handleWeb3Login = async () => {
+    setIsWeb3Loading(true);
+    setAuthError('');
+    
+    try {
+      if (typeof window !== 'undefined' && (window as any).solana) {
+        try {
+          const solana = (window as any).solana;
+          if (solana.isPhantom || solana.isSolflare) {
+            const response = await solana.connect();
+            const address = response.publicKey.toString();
+            setSolanaWallet({ address, balance: 0 });
+            console.log('Connected via browser wallet:', address);
+            
+            const registered = await registerWalletUser(address);
+            if (registered) {
+              setLocation('/home');
+            } else {
+              setAuthError('Failed to create account. Please try again.');
+            }
+            setIsWeb3Loading(false);
+            return;
+          }
+        } catch (e) {
+          console.log('Browser wallet not available, trying Web3Auth...');
+        }
+      }
+      
+      if (!web3auth) {
+        // Prevent ethereum property conflicts from browser wallets/extensions
+        const ethereumBackup = (window as any).ethereum;
+        if (ethereumBackup) {
+          delete (window as any).ethereum;
+        }
+        
+        const { Web3Auth } = await import('@web3auth/modal');
+        
+        const web3authInstance = new Web3Auth({
+          clientId: WEB3AUTH_CLIENT_ID,
+          web3AuthNetwork: "sapphire_devnet",
+          uiConfig: WEB3AUTH_UI_CONFIG,
+        });
+        
+        try {
+          await web3authInstance.init();
+        } catch (initError: any) {
+          if (initError?.message?.includes('ethereum') || initError?.message?.includes('redefine')) {
+            console.warn('Wallet extension conflict detected, continuing anyway');
+          } else {
+            // Restore ethereum object if init fails
+            if (ethereumBackup && !(window as any).ethereum) {
+              (window as any).ethereum = ethereumBackup;
+            }
+            throw initError;
+          }
+        }
+        
+        setWeb3auth(web3authInstance);
+        
+        const provider = await web3authInstance.connect();
+        if (provider) {
+          const accounts = await provider.request({ method: 'getAccounts' }) as string[];
+          if (accounts && accounts.length > 0) {
+            const address = accounts[0];
+            setSolanaWallet({ address, balance: 0 });
+            
+            const userInfo = await web3authInstance.getUserInfo();
+            console.log('Web3Auth user:', userInfo);
+            
+            const registered = await registerWalletUser(address, userInfo);
+            if (registered) {
+              setLocation('/home');
+            } else{
+              setAuthError('Failed to create account. Please try again.');
+            }
+          }
+        }
+      } else {
+        const provider = await web3auth.connect();
+        if (provider) {
+          const accounts = await provider.request({ method: 'getAccounts' }) as string[];
+          if (accounts && accounts.length > 0) {
+            const address = accounts[0];
+            setSolanaWallet({ address, balance: 0 });
+            
+            const userInfo = await web3auth.getUserInfo();
+            const registered = await registerWalletUser(address, userInfo);
+            if (registered) {
+              setLocation('/home');
+            }
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('Web3Auth error:', error);
+      if (error?.message !== 'User closed popup' && !error?.message?.includes('ethereum')) {
+        setAuthError('Web3 wallet connection cancelled or failed.');
+      }
+    }
+    
+    setIsWeb3Loading(false);
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation('/home');
+    }
+  }, [isAuthenticated, setLocation]);
+
+  const handlePuterLogin = async () => {
+    setIsPuterLoading(true);
+    setAuthError('');
+    
+    const success = await signInWithPuter();
+    if (!success) {
+      setAuthError('Puter sign-in failed. Please try again.');
+    }
+    
+    setIsPuterLoading(false);
+  };
+
+  const handleLogin = async () => {
+    if (!username.trim() || !password.trim()) {
+      setAuthError('Please fill in all fields');
+      return;
+    }
+
+    setIsLoading(true);
+    setAuthError('');
+    
+    const result = await signInWithCredentials(username.trim(), password);
+    if (!result.success) {
+      setAuthError(result.error || 'Login failed');
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleRegister = async () => {
+    if (!username.trim() || !password.trim()) {
+      setAuthError('Please fill in all fields');
+      return;
+    }
+
+    setIsLoading(true);
+    setAuthError('');
+    
+    const result = await register(username.trim(), password);
+    if (!result.success) {
+      setAuthError(result.error || 'Registration failed');
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleGuestAccess = () => {
+    continueAsGuest();
+  };
+
+  if (isAuthenticated && user) {
+    const badge = ROLE_BADGES[user.role];
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        <div 
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url('/login-bg.png')` }}
+        />
+        <div className="fixed inset-0 bg-black/40" />
+        <Card 
+          className="relative w-full max-w-md border-amber-500/50 backdrop-blur-md shadow-2xl z-10 overflow-hidden"
+          style={{
+            backgroundImage: `linear-gradient(to bottom, rgba(15,23,42,0.85), rgba(15,23,42,0.95)), url('/login-card-bg.png')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top'
+          }}
+        >
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4">
+              <img 
+                src={grudgeLogo} 
+                alt="GRUDGE Warlords" 
+                className="w-28 h-28 object-contain drop-shadow-2xl"
+              />
+            </div>
+            <h1 className="text-2xl font-bold text-amber-400 font-heading tracking-wide">Welcome Back!</h1>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <span className={`${badge.color} text-white text-xs px-2 py-1 rounded-full flex items-center gap-1`}>
+                {badge.icon}
+                {badge.label}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 text-center">
+            <p className="text-lg text-white">{user.username}</p>
+            <Button 
+              onClick={() => setLocation('/home')}
+              className="w-full gilded-button"
+              data-testid="button-enter-app"
+            >
+              Enter Game
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url('/login-bg.png')` }}
+      />
+      <div className="fixed inset-0 bg-black/40" />
+      <div className="fixed inset-0" style={{
+        background: 'radial-gradient(ellipse at center, rgba(234,179,8,0.2) 0%, transparent 70%)'
+      }} />
+      
+      <Card 
+        className="relative w-full max-w-md border-amber-500/50 backdrop-blur-md shadow-2xl z-10 overflow-hidden"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, rgba(15,23,42,0.85), rgba(15,23,42,0.95)), url('/login-card-bg.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top'
+        }}
+      >
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto mb-4">
+            <img 
+              src={grudgeLogo} 
+              alt="GRUDGE Warlords" 
+              className="w-32 h-32 object-contain drop-shadow-2xl"
+            />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-300 via-amber-400 to-orange-500 bg-clip-text text-transparent font-heading tracking-wide">
+            GRUDGE Warlords
+          </h1>
+          <p className="text-slate-300 text-sm mt-1">Crafting & Progression System</p>
+          
+          <div className="flex justify-center gap-4 mt-4">
+            {FACTION_EMBLEMS.map((faction) => (
+              <div 
+                key={faction.id} 
+                className={`relative group cursor-pointer`}
+                title={`${faction.name} Faction: ${faction.races.join(', ')}`}
+                data-testid={`faction-emblem-${faction.id}`}
+              >
+                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${faction.color} p-0.5 shadow-lg transform transition-all duration-200 group-hover:scale-110 group-hover:shadow-xl`}>
+                  <div className="w-full h-full rounded-md bg-slate-900/80 flex items-center justify-center">
+                    <div className="text-white">
+                      {faction.icon}
+                    </div>
+                  </div>
+                </div>
+                <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] text-slate-400 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                  {faction.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          {/* QUICK PLAY - No account needed */}
+          <div className="space-y-3">
+            <p className="text-xs text-slate-400 text-center uppercase tracking-wider">Quick Play</p>
+            
+            <Button 
+              onClick={handleGuestAccess}
+              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-medium py-5 text-lg shadow-lg"
+              data-testid="button-guest-quick"
+            >
+              <Sword className="w-5 h-5 mr-2" />
+              Play as Guest
+            </Button>
+            
+            <Button
+              onClick={handleWeb3Login}
+              disabled={isWeb3Loading}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-5 text-lg shadow-lg"
+              data-testid="button-web3-login"
+            >
+              {isWeb3Loading ? (
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              ) : (
+                <Wallet className="w-5 h-5 mr-2" />
+              )}
+              Connect Wallet
+            </Button>
+            
+            {solanaWallet && (
+              <div className="p-2 rounded-lg bg-purple-500/20 border border-purple-500/30 text-center">
+                <span className="text-xs text-purple-300 font-mono">
+                  {solanaWallet.address.slice(0, 6)}...{solanaWallet.address.slice(-4)}
+                </span>
+              </div>
+            )}
+          </div>
+          
+          {/* DIVIDER */}
+          <div className="relative py-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-600" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-slate-900 px-3 text-slate-500">or sign in for cloud saves</span>
+            </div>
+          </div>
+          
+          {/* ACCOUNT OPTIONS */}
+          <div className="space-y-3">
+            {isPuterAvailable && (
+              <Button
+                onClick={handlePuterLogin}
+                disabled={isPuterLoading}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-4 shadow-lg"
+                data-testid="button-puter-login"
+              >
+                {isPuterLoading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Shield className="w-4 h-4 mr-2" />
+                )}
+                Sign in with Puter
+              </Button>
+            )}
+
+          <Tabs value={authTab} onValueChange={(v) => setAuthTab(v as 'login' | 'register')}>
+            <TabsList className="grid w-full grid-cols-2 bg-slate-800/50">
+              <TabsTrigger 
+                value="login" 
+                className="data-[state=active]:bg-amber-600 data-[state=active]:text-white"
+                data-testid="tab-login"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Login
+              </TabsTrigger>
+              <TabsTrigger 
+                value="register" 
+                className="data-[state=active]:bg-amber-600 data-[state=active]:text-white"
+                data-testid="tab-register"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Register
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="login" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="login-username" className="text-slate-200">Username</Label>
+                <Input
+                  id="login-username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
+                  className="bg-slate-800/50 border-slate-600 text-white focus:border-amber-500 focus:ring-amber-500/20"
+                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                  data-testid="input-username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="login-password" className="text-slate-200">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="login-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="bg-slate-800/50 border-slate-600 text-white pr-10 focus:border-amber-500 focus:ring-amber-500/20"
+                    onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                    data-testid="input-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                    data-testid="button-toggle-password"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+              <Button 
+                onClick={handleLogin} 
+                disabled={isLoading}
+                className="w-full gilded-button py-5"
+                data-testid="button-login"
+              >
+                {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <LogIn className="w-4 h-4 mr-2" />}
+                Sign In
+              </Button>
+            </TabsContent>
+            
+            <TabsContent value="register" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="register-username" className="text-slate-200">Username</Label>
+                <Input
+                  id="register-username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Choose a username (3-20 characters)"
+                  className="bg-slate-800/50 border-slate-600 text-white focus:border-amber-500 focus:ring-amber-500/20"
+                  onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
+                  data-testid="input-register-username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="register-password" className="text-slate-200">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="register-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Choose a password (4+ characters)"
+                    className="bg-slate-800/50 border-slate-600 text-white pr-10 focus:border-amber-500 focus:ring-amber-500/20"
+                    onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
+                    data-testid="input-register-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+              <Button 
+                onClick={handleRegister} 
+                disabled={isLoading}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-5"
+                data-testid="button-register"
+              >
+                {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <UserPlus className="w-4 h-4 mr-2" />}
+                Create Account
+              </Button>
+            </TabsContent>
+          </Tabs>
+          
+          {authError && (
+            <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/30">
+              <p className="text-red-400 text-sm text-center" data-testid="text-error">{authError}</p>
+            </div>
+          )}
+          </div>
+          
+          <p className="text-xs text-slate-500 text-center pt-2">
+            Link accounts in Settings to sync progress across devices
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

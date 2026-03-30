@@ -1,0 +1,381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
+  "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" version="XHTML+RDFa 1.0" dir="ltr"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/terms/"
+  xmlns:foaf="http://xmlns.com/foaf/0.1/"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:sioc="http://rdfs.org/sioc/ns#"
+  xmlns:sioct="http://rdfs.org/sioc/types#"
+  xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
+
+<head profile="http://www.w3.org/1999/xhtml/vocab">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="alternate" type="application/rss+xml" title="Active Forum Topics" href="https://opengameart.org/active-forum-topics.xml?destination=sites/default/files/KayKit_Character_Animations_1.0.zip" />
+<link rel="alternate" type="application/rss+xml" title="Recent comments" href="https://opengameart.org/recent-comments.xml?destination=sites/default/files/KayKit_Character_Animations_1.0.zip" />
+<link rel="shortcut icon" href="https://opengameart.org/sites/all/themes/oga/opengameart2_favicon.ico" type="image/vnd.microsoft.icon" />
+<meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible" />
+<meta name="generator" content="Drupal 7 (http://drupal.org)" />
+<link rel="canonical" href="https://opengameart.org/" />
+<link rel="shortlink" href="https://opengameart.org/" />
+<meta property="og:site_name" content="OpenGameArt.org" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://opengameart.org/" />
+<meta property="og:title" content="OpenGameArt.org" />
+<meta name="dcterms.title" content="OpenGameArt.org" />
+<meta name="dcterms.publisher" content="OpenGameArt.org" />
+<meta name="dcterms.type" content="Text" />
+<meta name="dcterms.format" content="text/html" />
+<meta name="dcterms.identifier" content="https://opengameart.org/" />
+  <title>Page not found | OpenGameArt.org</title>
+  <link type="text/css" rel="stylesheet" href="https://opengameart.org/sites/default/files/css/css_xE-rWrJf-fncB6ztZfd2huxqgxu4WO-qwma6Xer30m4.css" media="all" />
+<link type="text/css" rel="stylesheet" href="https://opengameart.org/sites/default/files/css/css_ff3tJc71Z402cxcrQprs7GRkOQJuOqgs2LWeSWIHHR0.css" media="all" />
+<link type="text/css" rel="stylesheet" href="https://opengameart.org/sites/default/files/css/css_cGO_UhtPLR1KM8K-noH6DGH8G4mUG-JN_soxiCkv1u4.css" media="all" />
+<link type="text/css" rel="stylesheet" href="https://opengameart.org/sites/default/files/css/css_OtQOkIfOUJ2phWO18SxaKrQD2ZSEhULeB_iPCAGumwA.css" media="all" />
+  <script type="text/javascript" src="https://opengameart.org/sites/default/files/js/js_YD9ro0PAqY25gGWrTki6TjRUG8TdokmmxjfqpNNfzVU.js"></script>
+<script type="text/javascript" src="https://opengameart.org/sites/default/files/js/js_1kmqaL-ZHNpUzE1MbRYi4nlI_AXpH1XP9HPtnQDYngw.js"></script>
+<script type="text/javascript" src="https://opengameart.org/sites/default/files/js/js_THpgTs0gwHaRk1L-4jiO93chzbsgFlOcQRf4T2qCfQs.js"></script>
+<script type="text/javascript" src="https://opengameart.org/sites/default/files/js/js_4LP9xJbj6acfc_JRV2DHP0ZOg-rlk2LdtYajvS6VX6g.js"></script>
+<script type="text/javascript" src="https://opengameart.org/sites/default/files/js/js_WNcjX9C7AzUw-N1abXrdZLpLq71PtBe1dISODcGzqx8.js"></script>
+<script type="text/javascript">
+<!--//--><![CDATA[//><!--
+jQuery.extend(Drupal.settings, {"basePath":"\/","pathPrefix":"","setHasJsCookie":0,"ajaxPageState":{"theme":"oga_theme","theme_token":"EOKmq7ExmXQzcoX9bvhvwpB8NNPtuE0FTkDGq1EMoXs","js":{"misc\/jquery.js":1,"misc\/jquery-extend-3.4.0.js":1,"misc\/jquery-html-prefilter-3.5.0-backport.js":1,"misc\/jquery.once.js":1,"misc\/drupal.js":1,"misc\/jquery.cookie.js":1,"misc\/jquery.form.js":1,"misc\/form-single-submit.js":1,"misc\/ajax.js":1,"sites\/all\/modules\/oga\/ajax_dlcount\/ajax_dlcount.js":1,"sites\/all\/modules\/entityreference\/js\/entityreference.js":1,"sites\/all\/modules\/compact_forms\/compact_forms.js":1,"sites\/all\/modules\/views\/js\/base.js":1,"misc\/progress.js":1,"sites\/all\/modules\/views\/js\/ajax_view.js":1,"modules\/openid\/openid.js":1,"sites\/all\/themes\/oga\/oga_theme.js":1},"css":{"modules\/system\/system.base.css":1,"modules\/system\/system.menus.css":1,"modules\/system\/system.messages.css":1,"modules\/system\/system.theme.css":1,"sites\/all\/modules\/comment_notify\/comment_notify.css":1,"modules\/comment\/comment.css":1,"modules\/field\/theme\/field.css":1,"sites\/all\/modules\/logintoboggan\/logintoboggan.css":1,"modules\/node\/node.css":1,"modules\/search\/search.css":1,"modules\/user\/user.css":1,"modules\/forum\/forum.css":1,"sites\/all\/modules\/views\/css\/views.css":1,"sites\/all\/modules\/ctools\/css\/ctools.css":1,"sites\/all\/modules\/compact_forms\/compact_forms.css":1,"modules\/openid\/openid.css":1,"sites\/all\/themes\/oga\/oga_theme.css":1}},"compactForms":{"forms":["user-login-form"],"stars":2},"urlIsAjaxTrusted":{"\/art-search":true,"\/views\/ajax":true,"\/sites\/default\/files\/KayKit_Character_Animations_1.0.zip?destination=sites\/default\/files\/KayKit_Character_Animations_1.0.zip":true},"views":{"ajax_path":"\/views\/ajax","ajaxViews":{"views_dom_id:5cdcbfb995c2141dfc985d6e04c7fca3":{"view_name":"art_challenge","view_display_id":"block","view_args":"","view_path":"sites\/default\/files\/KayKit_Character_Animations_1.0.zip","view_base_path":"art-challenge","view_dom_id":"5cdcbfb995c2141dfc985d6e04c7fca3","pager_element":0},"views_dom_id:a9235eac4267aca87233831f4f48703d":{"view_name":"art_collections","view_display_id":"block_2","view_args":"","view_path":"content\/cat-sprite-sheet","view_base_path":"collections","view_dom_id":"a9235eac4267aca87233831f4f48703d","pager_element":0}}}});
+//--><!]]>
+</script>
+</head>
+<body class="html not-front not-logged-in no-sidebars page-sites page-sites-default page-sites-default-files page-sites-default-files-kaykit-character-animations-10zip domain-opengameart-org" >
+  <div id="skip-link">
+    <a href="#main-content" class="element-invisible element-focusable">Skip to main content</a>
+  </div>
+    
+<noscript><style>
+node_art_form_group_author_information {
+  display: block !important;
+}
+</style></noscript>
+
+<div id='page'>
+  <div id='topright'>  <div class="region region-topright">
+    <div id="block-user-login" class="block block-user">
+
+    <h2>User login</h2>
+  
+  <div class="content">
+    <form action="/sites/default/files/KayKit_Character_Animations_1.0.zip?destination=sites/default/files/KayKit_Character_Animations_1.0.zip" method="post" id="user-login-form" accept-charset="UTF-8"><div><div class="form-item form-type-textfield form-item-openid-identifier">
+  <label for="edit-openid-identifier">OpenID </label>
+ <input type="text" id="edit-openid-identifier" name="openid_identifier" value="" size="15" maxlength="255" class="form-text" />
+<div class="description"><a href="http://openid.net/">What is OpenID?</a></div>
+</div>
+<div class="form-item form-type-textfield form-item-name">
+  <label for="edit-name">Username or e-mail <span class="form-required" title="This field is required.">*</span></label>
+ <input type="text" id="edit-name" name="name" value="" size="15" maxlength="60" class="form-text required" />
+</div>
+<div class="form-item form-type-password form-item-pass">
+  <label for="edit-pass">Password <span class="form-required" title="This field is required.">*</span></label>
+ <input type="password" id="edit-pass" name="pass" size="15" maxlength="128" class="form-text required" />
+</div>
+<input type="hidden" name="form_build_id" value="form-vixBaatW_qnWyB6nzmZlh_0Vp7IGIed5xLkMtwcH8yg" />
+<input type="hidden" name="form_id" value="user_login_block" />
+<input type="hidden" name="openid.return_to" value="https://opengameart.org/openid/authenticate?destination=sites/default/files/KayKit_Character_Animations_1.0.zip" />
+<div class="item-list"><ul class="openid-links"><li class="openid-link first"><a href="#openid-login">Log in using OpenID</a></li>
+<li class="user-link last"><a href="#">Cancel OpenID login</a></li>
+</ul></div><div class="item-list"><ul><li class="first"><a href="/user/register" title="Create a new user account.">Create new account</a></li>
+<li class="last"><a href="/user/password" title="Request new password via e-mail.">Request new password</a></li>
+</ul></div><div class="form-actions form-wrapper" id="edit-actions"><input type="submit" id="edit-submit" name="op" value="Log in" class="form-submit" /></div></div></form>  </div>
+</div>
+<div id="block-oga-register" class="block block-oga">
+
+    
+  <div class="content">
+    <a href='#' onclick='window.location="/user/register?human=1"'>Register</a>  </div>
+</div>
+  </div>
+</div>
+  <a href='/' id='maintitle'></a>
+
+  <div id='menubar'>
+      <div class="region region-menubar">
+    <div id="block-menu-block-menubar" class="block block-menu-block">
+
+    
+  <div class="content">
+    <div class="menu-block-wrapper menu-block-menubar menu-name-main-menu parent-mlid-0 menu-level-1">
+  <ul class="menu"><li class="first leaf menu-mlid-173"><a href="/">Home</a></li>
+<li class="expanded menu-mlid-486"><a href="/latest" title="">Browse</a><ul class="menu"><li class="first leaf menu-mlid-487"><a href="/art-search-advanced?keys=&amp;field_art_type_tid%5B%5D=9&amp;sort_by=count&amp;sort_order=DESC" title="Browse Popular 2d Art">2D Art</a></li>
+<li class="leaf menu-mlid-488"><a href="/art-search-advanced?keys=&amp;field_art_type_tid%5B%5D=10&amp;sort_by=count&amp;sort_order=DESC" title="Browse popular 3D art">3D Art</a></li>
+<li class="leaf menu-mlid-1819"><a href="/art-search-advanced?keys=&amp;field_art_type_tid%5B%5D=7273&amp;sort_by=count&amp;sort_order=DESC" title="Browse popular concept art">Concept Art</a></li>
+<li class="leaf menu-mlid-492"><a href="/art-search-advanced?keys=&amp;field_art_type_tid%5B%5D=14&amp;sort_by=count&amp;sort_order=DESC" title="Browse popular textures">Textures</a></li>
+<li class="leaf menu-mlid-490"><a href="/art-search-advanced?keys=&amp;field_art_type_tid%5B%5D=12&amp;sort_by=count&amp;sort_order=DESC" title="Browse popular music">Music</a></li>
+<li class="leaf menu-mlid-491"><a href="/art-search-advanced?keys=&amp;field_art_type_tid%5B%5D=13&amp;sort_by=count&amp;sort_order=DESC" title="Browse popular sound effects">Sound Effects</a></li>
+<li class="leaf menu-mlid-489"><a href="/art-search-advanced?keys=&amp;field_art_type_tid%5B%5D=11&amp;sort_by=count&amp;sort_order=DESC" title="Browse popular documents">Documents</a></li>
+<li class="last leaf menu-mlid-1464"><a href="/forums/featured-tutorials" title="">Featured Tutorials</a></li>
+</ul></li>
+<li class="leaf menu-mlid-485"><a href="/node/add/art" title="">Submit Art</a></li>
+<li class="expanded menu-mlid-1059"><a href="/collections">Collect</a><ul class="menu"><li class="first leaf menu-mlid-1060"><a href="/my-collections">My Collections</a></li>
+<li class="last leaf menu-mlid-1062"><a href="/collections" title="">Art Collections</a></li>
+</ul></li>
+<li class="expanded menu-mlid-322"><a href="/forums/art-discussion">Forums</a></li>
+<li class="leaf menu-mlid-673"><a href="/content/faq" title="Frequently Asked Questions">FAQ</a></li>
+<li class="expanded menu-mlid-2335"><a href="/leaderboards/total" title="">Leaderboards</a><ul class="menu"><li class="first expanded menu-mlid-2343"><a href="/leaderboards/total" title="">All Time</a><ul class="menu"><li class="first leaf menu-mlid-2336"><a href="/leaderboards/total" title="">Total Points</a></li>
+<li class="leaf menu-mlid-2338"><a href="/leaderboards/comments" title="">Comments</a></li>
+<li class="leaf menu-mlid-2337"><a href="/leaderboards/favorites" title="">Favorites (All)</a></li>
+<li class="leaf menu-mlid-2344"><a href="/leaderboards/2d" title="">Favorites (2D)</a></li>
+<li class="leaf menu-mlid-2345"><a href="/leaderboards/3d" title="">Favorites (3D)</a></li>
+<li class="leaf menu-mlid-2346"><a href="/leaderboards/concept" title="">Favorites (Concept Art)</a></li>
+<li class="leaf menu-mlid-2347"><a href="/leaderboards/music" title="">Favorites (Music)</a></li>
+<li class="leaf menu-mlid-2348"><a href="/leaderboards/sound" title="">Favorites (Sound)</a></li>
+<li class="last leaf menu-mlid-2349"><a href="/leaderboards/textures" title="">Favorites (Textures)</a></li>
+</ul></li>
+<li class="last expanded menu-mlid-2350"><a href="/weekly-leaderboards/total" title="">Weekly</a><ul class="menu"><li class="first leaf menu-mlid-2351"><a href="/weekly-leaderboards/total" title="">Total Points</a></li>
+<li class="leaf menu-mlid-2352"><a href="/weekly-leaderboards/comments" title="">Comments</a></li>
+<li class="leaf menu-mlid-2353"><a href="/weekly-leaderboards/favorites" title="">Favorites (All)</a></li>
+<li class="leaf menu-mlid-2354"><a href="/weekly-leaderboards/2d" title="">Favorites (2D)</a></li>
+<li class="leaf menu-mlid-2355"><a href="/weekly-leaderboards/3d" title="">Favorites (3D)</a></li>
+<li class="leaf menu-mlid-2356"><a href="/weekly-leaderboards/concept" title="">Favorites (Concept Art)</a></li>
+<li class="leaf menu-mlid-2357"><a href="/weekly-leaderboards/music" title="">Favorites (Music)</a></li>
+<li class="leaf menu-mlid-2358"><a href="/weekly-leaderboards/sound" title="">Favorites (Sound)</a></li>
+<li class="last leaf menu-mlid-2359"><a href="/weekly-leaderboards/textures" title="">Favorites (Textures)</a></li>
+</ul></li>
+</ul></li>
+<li class="last leaf menu-mlid-3683"><a href="https://www.patreon.com/opengameart" title="">❤ Donate</a></li>
+</ul></div>
+  </div>
+</div>
+<div id="block-block-5" class="block block-block">
+
+    
+  <div class="content">
+    <a href='/'><img src='/sites/default/files/archive/sara-logo.png' title='Sara' /></a>  </div>
+</div>
+  </div>
+    <div id='menubar-right'>
+        <div class="region region-menubar-right">
+    <div id="block-views-exp-art-search-art" class="block block-views">
+
+    
+  <div class="content">
+    <form action="/art-search" method="get" id="views-exposed-form-art-search-art" accept-charset="UTF-8"><div><div class="views-exposed-form">
+  <div class="views-exposed-widgets clearfix">
+          <div id="edit-keys-wrapper" class="views-exposed-widget views-widget-filter-keys">
+                  <label for="edit-keys">
+            Search          </label>
+                        <div class="views-widget">
+          <div class="form-item form-type-textfield form-item-keys">
+ <input title="Enter the terms you wish to search for." type="text" id="edit-keys" name="keys" value="" size="15" maxlength="128" class="form-text" />
+</div>
+        </div>
+              </div>
+                    <div class="views-exposed-widget views-submit-button">
+      <input type="submit" id="edit-submit-art" value="Search" class="form-submit" />    </div>
+      </div>
+</div>
+</div></form>  </div>
+</div>
+  </div>
+    </div>
+ </div>
+
+  <div id='maincontent'>
+    <div id='left'>
+        <div class="region region-left">
+    <div id="block-block-2" class="block block-block">
+
+    <h2>Chat with us!</h2>
+  
+  <div class="content">
+    <!--a href='/content/irc-web-chat-rules'>IRC/Webchat Rules</a--><p><strong>Discord:</strong> <a href="https://discord.gg/yDaQ4NcCux" target="_blank">OpenGameArt</a><br /><a href="https://discord.gg/yDaQ4NcCux" target="_blank">discord.gg/yDaQ4NcCux</a></p>
+<p><strong>IRC:</strong> <a href="https://freegamedev.net/irc/#opengameart" target="_blank">#OpenGameArt</a> on <a href="https://freegamedev.net/irc/#opengameart" target="_blank">freegamedev.net/irc/#opengameart</a></p>
+  </div>
+</div>
+<div id="block-views-new-forum-topics-block-1" class="block block-views">
+
+    <h2>Active Forum Topics - (<a href='/forum'>view more</a>)</h2>
+  
+  <div class="content">
+    <div class="view view-new-forum-topics view-id-new_forum_topics view-display-id-block_1 view-dom-id-475c20b914ec51c7b9b2a253b7ca177a">
+        
+  
+  
+      <div class="view-content">
+      <div class="item-list">    <ul>          <li class="views-row views-row-1 views-row-odd views-row-first">  
+  <span class="views-field views-field-title">        <span class="field-content"><a href="/forumtopic/mix-distribution#comment-111400">Mix distribution</a></span>  </span>  
+  <span class="views-field views-field-last-comment-timestamp">        <span class="field-content"><em class="placeholder">15 hours 16 min</em> ago</span>  </span>  
+  <span class="views-field views-field-last-comment-name">    <span class="views-label views-label-last-comment-name">by</span>    <span class="field-content"><a href="/users/glitchart" title="View user profile." class="username" xml:lang="" about="/users/glitchart" typeof="sioc:UserAccount" property="foaf:name" datatype="">glitchart</a></span>  </span></li>
+          <li class="views-row views-row-2 views-row-even">  
+  <span class="views-field views-field-title">        <span class="field-content"><a href="/forumtopic/pixel-artist-looking-for-a-project#comment-111371">Pixel Artist Looking for a Project</a></span>  </span>  
+  <span class="views-field views-field-last-comment-timestamp">        <span class="field-content"><em class="placeholder">5 days 20 hours</em> ago</span>  </span>  
+  <span class="views-field views-field-last-comment-name">    <span class="views-label views-label-last-comment-name">by</span>    <span class="field-content"><a href="/users/koshechka-ninja" title="View user profile." class="username" xml:lang="" about="/users/koshechka-ninja" typeof="sioc:UserAccount" property="foaf:name" datatype="">Koshechka-Ninja</a></span>  </span></li>
+          <li class="views-row views-row-3 views-row-odd">  
+  <span class="views-field views-field-title">        <span class="field-content"><a href="/forumtopic/tools#comment-111364">tools</a></span>  </span>  
+  <span class="views-field views-field-last-comment-timestamp">        <span class="field-content"><em class="placeholder">6 days 6 hours</em> ago</span>  </span>  
+  <span class="views-field views-field-last-comment-name">    <span class="views-label views-label-last-comment-name">by</span>    <span class="field-content"><a href="/users/blueprawn" title="View user profile." class="username" xml:lang="" about="/users/blueprawn" typeof="sioc:UserAccount" property="foaf:name" datatype="">blue_prawn</a></span>  </span></li>
+          <li class="views-row views-row-4 views-row-even">  
+  <span class="views-field views-field-title">        <span class="field-content"><a href="/forumtopic/a-basic-small-game#comment-">a basic small-game</a></span>  </span>  
+  <span class="views-field views-field-last-comment-timestamp">        <span class="field-content"><em class="placeholder">6 days 6 hours</em> ago</span>  </span>  
+  <span class="views-field views-field-last-comment-name">    <span class="views-label views-label-last-comment-name">by</span>    <span class="field-content"><a href="/users/blueprawn" title="View user profile." class="username" xml:lang="" about="/users/blueprawn" typeof="sioc:UserAccount" property="foaf:name" datatype="">blue_prawn</a></span>  </span></li>
+          <li class="views-row views-row-5 views-row-odd">  
+  <span class="views-field views-field-title">        <span class="field-content"><a href="/forumtopic/endless-darkness-unitycrogue-like30#comment-111362">Endless Darkness [UNITY/C#][Rogue-Like][30%]</a></span>  </span>  
+  <span class="views-field views-field-last-comment-timestamp">        <span class="field-content"><em class="placeholder">6 days 12 hours</em> ago</span>  </span>  
+  <span class="views-field views-field-last-comment-name">    <span class="views-label views-label-last-comment-name">by</span>    <span class="field-content"><a href="/users/zenzeno" title="View user profile." class="username" xml:lang="" about="/users/zenzeno" typeof="sioc:UserAccount" property="foaf:name" datatype="">ZenZeno</a></span>  </span></li>
+          <li class="views-row views-row-6 views-row-even">  
+  <span class="views-field views-field-title">        <span class="field-content"><a href="/content/0-ad-art#comment-111357">0 A.D. art</a></span>  </span>  
+  <span class="views-field views-field-last-comment-timestamp">        <span class="field-content"><em class="placeholder">6 days 14 hours</em> ago</span>  </span>  
+  <span class="views-field views-field-last-comment-name">    <span class="views-label views-label-last-comment-name">by</span>    <span class="field-content"><a href="/users/glitchart" title="View user profile." class="username" xml:lang="" about="/users/glitchart" typeof="sioc:UserAccount" property="foaf:name" datatype="">glitchart</a></span>  </span></li>
+          <li class="views-row views-row-7 views-row-odd">  
+  <span class="views-field views-field-title">        <span class="field-content"><a href="/forumtopic/sharing-my-music-and-sound-fx-over-2500-tracks#comment-111358">Sharing My Music and Sound FX - Over 2500 Tracks</a></span>  </span>  
+  <span class="views-field views-field-last-comment-timestamp">        <span class="field-content"><em class="placeholder">6 days 16 hours</em> ago</span>  </span>  
+  <span class="views-field views-field-last-comment-name">    <span class="views-label views-label-last-comment-name">by</span>    <span class="field-content"><a href="/users/eric-matyas" title="View user profile." class="username" xml:lang="" about="/users/eric-matyas" typeof="sioc:UserAccount" property="foaf:name" datatype="">Eric Matyas</a></span>  </span></li>
+          <li class="views-row views-row-8 views-row-even views-row-last">  
+  <span class="views-field views-field-title">        <span class="field-content"><a href="/forumtopic/can-i-post-this-wmc-art-from-prorietary-games#comment-100837">Can I post this WMC art from prorietary games?</a></span>  </span>  
+  <span class="views-field views-field-last-comment-timestamp">        <span class="field-content"><em class="placeholder">1 week 10 hours</em> ago</span>  </span>  
+  <span class="views-field views-field-last-comment-name">    <span class="views-label views-label-last-comment-name">by</span>    <span class="field-content"><a href="/users/drummyfish" title="View user profile." class="username" xml:lang="" about="/users/drummyfish" typeof="sioc:UserAccount" property="foaf:name" datatype="">Drummyfish</a></span>  </span></li>
+      </ul></div>    </div>
+  
+  
+  
+  
+  
+      <div class="feed-icon">
+      <a href="https://opengameart.org/active-forum-topics.xml?destination=sites/default/files/arcade-bg.png" class="feed-icon" title="Subscribe to Active Forum Topics"><img typeof="foaf:Image" src="https://opengameart.org/sites/all/themes/oga/rss-icon-nobg.png" width="16" height="16" alt="Subscribe to Active Forum Topics" /></a>    </div>
+  
+</div>  </div>
+</div>
+<div id="block-views-comments-recent-block" class="block block-views">
+
+    <h2>Recent Comments - (<a href='/comments/recent'>view more</a>)</h2>
+  
+  <div class="content">
+    <div class="view view-comments-recent view-id-comments_recent view-display-id-block view-dom-id-79f5e19f31269d465f51a60d6c7d6927">
+        
+  
+  
+      <div class="view-content">
+      <div class="item-list">    <ul>          <li class="views-row views-row-1 views-row-odd views-row-first">  
+  <span class="views-field views-field-subject">        <span class="field-content"><a href="/content/kq-fork#comment-111411">Re: <a href="/content/kq-fork">kq-fork</a></a></span>  </span>  
+  <span class="views-field views-field-name">    <span class="views-label views-label-name">by</span>    <span class="field-content"><a href="/users/z9484" title="View user profile." class="username" xml:lang="" about="/users/z9484" typeof="sioc:UserAccount" property="foaf:name" datatype="">z9484</a></span>  </span></li>
+          <li class="views-row views-row-2 views-row-even">  
+  <span class="views-field views-field-subject">        <span class="field-content"><a href="/content/symphony-guys-expansion-pack#comment-111410">Re: <a href="/content/symphony-guys-expansion-pack">Symphony guys expansion pack</a></a></span>  </span>  
+  <span class="views-field views-field-name">    <span class="views-label views-label-name">by</span>    <span class="field-content"><a href="/users/medicinestorm" title="View user profile." class="username" xml:lang="" about="/users/medicinestorm" typeof="sioc:UserAccount" property="foaf:name" datatype="">MedicineStorm</a></span>  </span></li>
+          <li class="views-row views-row-3 views-row-odd">  
+  <span class="views-field views-field-subject">        <span class="field-content"><a href="/content/symphony-guys-expansion-pack#comment-111409">Re: <a href="/content/symphony-guys-expansion-pack">Symphony guys expansion pack</a></a></span>  </span>  
+  <span class="views-field views-field-name">    <span class="views-label views-label-name">by</span>    <span class="field-content"><a href="/users/codys" title="View user profile." class="username" xml:lang="" about="/users/codys" typeof="sioc:UserAccount" property="foaf:name" datatype="">CodyS</a></span>  </span></li>
+          <li class="views-row views-row-4 views-row-even">  
+  <span class="views-field views-field-subject">        <span class="field-content"><a href="/content/symphony-guys-expansion-pack#comment-111408">Re: <a href="/content/symphony-guys-expansion-pack">Symphony guys expansion pack</a></a></span>  </span>  
+  <span class="views-field views-field-name">    <span class="views-label views-label-name">by</span>    <span class="field-content"><a href="/users/medicinestorm" title="View user profile." class="username" xml:lang="" about="/users/medicinestorm" typeof="sioc:UserAccount" property="foaf:name" datatype="">MedicineStorm</a></span>  </span></li>
+          <li class="views-row views-row-5 views-row-odd">  
+  <span class="views-field views-field-subject">        <span class="field-content"><a href="/content/fantasy-music-the-eternal-sands#comment-111407">Re: <a href="/content/fantasy-music-the-eternal-sands">Fantasy Music - The Eternal Sands</a></a></span>  </span>  
+  <span class="views-field views-field-name">    <span class="views-label views-label-name">by</span>    <span class="field-content"><a href="/users/nitharos" title="View user profile." class="username" xml:lang="" about="/users/nitharos" typeof="sioc:UserAccount" property="foaf:name" datatype="">Nitharos</a></span>  </span></li>
+          <li class="views-row views-row-6 views-row-even">  
+  <span class="views-field views-field-subject">        <span class="field-content"><a href="/content/the-sad-battle#comment-111405">Re: <a href="/content/the-sad-battle">The Sad Battle</a></a></span>  </span>  
+  <span class="views-field views-field-name">    <span class="views-label views-label-name">by</span>    <span class="field-content"><a href="/users/nitharos" title="View user profile." class="username" xml:lang="" about="/users/nitharos" typeof="sioc:UserAccount" property="foaf:name" datatype="">Nitharos</a></span>  </span></li>
+          <li class="views-row views-row-7 views-row-odd">  
+  <span class="views-field views-field-subject">        <span class="field-content"><a href="/content/colossal-boss-battle-theme#comment-111404">Re: <a href="/content/colossal-boss-battle-theme">Colossal Boss Battle Theme</a></a></span>  </span>  
+  <span class="views-field views-field-name">    <span class="views-label views-label-name">by</span>    <span class="field-content"><a href="/users/nitharos" title="View user profile." class="username" xml:lang="" about="/users/nitharos" typeof="sioc:UserAccount" property="foaf:name" datatype="">Nitharos</a></span>  </span></li>
+          <li class="views-row views-row-8 views-row-even views-row-last">  
+  <span class="views-field views-field-subject">        <span class="field-content"><a href="/content/epic-boss-battle#comment-111403">Re: <a href="/content/epic-boss-battle">Epic Boss Battle</a></a></span>  </span>  
+  <span class="views-field views-field-name">    <span class="views-label views-label-name">by</span>    <span class="field-content"><a href="/users/nitharos" title="View user profile." class="username" xml:lang="" about="/users/nitharos" typeof="sioc:UserAccount" property="foaf:name" datatype="">Nitharos</a></span>  </span></li>
+      </ul></div>    </div>
+  
+  
+  
+  
+  
+      <div class="feed-icon">
+      <a href="https://opengameart.org/recent-comments.xml?returnto=Style%20guide&amp;title=Special%3AUserLogin&amp;type=signup" class="feed-icon" title="Subscribe to Recent comments"><img typeof="foaf:Image" src="https://opengameart.org/sites/all/themes/oga/rss-icon-nobg.png" width="16" height="16" alt="Subscribe to Recent comments" /></a>    </div>
+  
+</div>  </div>
+</div>
+  </div>
+                <div id='farright'>
+            <div class="region region-farright">
+    <div id="block-views-art-collections-block-2" class="block block-views">
+
+    <h2>New Art Collections - (<a href='/collections'>view more</a>)</h2>
+  
+  <div class="content">
+    <div class="view view-art-collections view-id-art_collections view-display-id-block_2 view-dom-id-a9235eac4267aca87233831f4f48703d">
+        
+  
+  
+      <div class="view-content">
+      <div class="item-list">    <ul>          <li class="views-row views-row-1 views-row-odd views-row-first">  
+  <div class="views-field views-field-title">        <span class="field-content"><a href="/content/kq-fork">kq-fork</a></span>  </div></li>
+          <li class="views-row views-row-2 views-row-even">  
+  <div class="views-field views-field-title">        <span class="field-content"><a href="/content/mystery-game">Mystery Game</a></span>  </div></li>
+          <li class="views-row views-row-3 views-row-odd">  
+  <div class="views-field views-field-title">        <span class="field-content"><a href="/content/flappy-birb">Flappy birb</a></span>  </div></li>
+          <li class="views-row views-row-4 views-row-even">  
+  <div class="views-field views-field-title">        <span class="field-content"><a href="/content/scary-game">Scary Game</a></span>  </div></li>
+          <li class="views-row views-row-5 views-row-odd">  
+  <div class="views-field views-field-title">        <span class="field-content"><a href="/content/trial-by-hellfire">Trial By Hellfire</a></span>  </div></li>
+          <li class="views-row views-row-6 views-row-even">  
+  <div class="views-field views-field-title">        <span class="field-content"><a href="/content/workshop-retro-puzzle-maker">Workshop - Retro Puzzle Maker</a></span>  </div></li>
+          <li class="views-row views-row-7 views-row-odd">  
+  <div class="views-field views-field-title">        <span class="field-content"><a href="/content/to-use-1">TO USE</a></span>  </div></li>
+          <li class="views-row views-row-8 views-row-even">  
+  <div class="views-field views-field-title">        <span class="field-content"><a href="/content/ded-outside">DED OUTSIDE</a></span>  </div></li>
+          <li class="views-row views-row-9 views-row-odd">  
+  <div class="views-field views-field-title">        <span class="field-content"><a href="/content/project-grid">Project Grid</a></span>  </div></li>
+          <li class="views-row views-row-10 views-row-even views-row-last">  
+  <div class="views-field views-field-title">        <span class="field-content"><a href="/content/barbadel-music">barbadel music</a></span>  </div></li>
+      </ul></div>    </div>
+  
+  
+  
+  
+  
+  
+</div>  </div>
+</div>
+<div id="block-views-links-block" class="block block-views">
+
+    <h2>Affiliates</h2>
+  
+  <div class="content">
+    <div class="view view-links view-id-links view-display-id-block view-dom-id-40649a840d790f15ffe0811cda5ac05c">
+        
+  
+  
+      <div class="view-content">
+      <div class="item-list">    <ul>          <li class="views-row views-row-1 views-row-odd views-row-first">  
+  <div>        <span><a href="http://flarerpg.org/">FLARE</a></span>  </div></li>
+          <li class="views-row views-row-2 views-row-even">  
+  <div>        <span><a href="https://freegamedev.net/p/3-about">FreeGameDev</a></span>  </div></li>
+          <li class="views-row views-row-3 views-row-odd">  
+  <div>        <span><a href="https://kenney.nl/">Kenney</a></span>  </div></li>
+          <li class="views-row views-row-4 views-row-even">  
+  <div>        <span><a href="http://lpc.opengameart.org">Liberated Pixel Cup</a></span>  </div></li>
+          <li class="views-row views-row-5 views-row-odd views-row-last">  
+  <div>        <span><a href="https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator">Universal LPC Spritesheet Generator</a></span>  </div></li>
+      </ul></div>    </div>
+  
+  
+  
+  
+  
+  
+</div>  </div>
+</div>
+  </div>
+        </div>
+              </div>
+    <div id='right'>
+            
+            <div class='tabs'></div>
+            
+                  <div class='pagetitle'><h2>Page not found</h2></div>
+              <div class="region region-content">
+    <div id="block-system-main" class="block block-system">
+
+    
+  <div class="content">
+    The requested page "/sites/default/files/KayKit_Character_Animations_1.0.zip" could not be found.  </div>
+</div>
+  </div>
+    </div>
+	
+  </div>
+</div>
+  </body>
+</html>
