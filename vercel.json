@@ -3,30 +3,8 @@
   "installCommand": "npm install",
   "outputDirectory": "dist/public",
   "framework": null,
-  "headers": [
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "cross-origin" }
-      ]
-    },
-    {
-      "source": "/index.html",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache" }
-      ]
-    },
-    {
-      "source": "/(.*)\.glb",
-      "headers": [
-        { "key": "Content-Type", "value": "model/gltf-binary" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "cross-origin" }
-      ]
-    }
-  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "https://api.grudge-studio.com/api/$1" },
-    { "source": "/((?!assets/|favicon|apple-touch-icon|icon-|.*\\.glb|.*\\.gltf|.*\\.png|.*\\.jpg|.*\\.wasm).*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
