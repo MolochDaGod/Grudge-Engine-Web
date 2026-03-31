@@ -14,3 +14,4 @@ public/assets/characters/races/*/equipment/*.FBX
 public/assets/characters/races/*/animations/*.fbx
 public/assets/characters/races/*/animations/*.FBX
 public/assets/processing/
+.vercel
