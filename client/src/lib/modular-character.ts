@@ -608,3 +608,259 @@ export async function createModularCharacter(
   await character.load();
   return character;
 }
+
+// ===========================================================================
+// Showcase Helper API
+// ===========================================================================
+// Self-contained functional API consumed by CharacterShowcase.tsx.
+// Works directly with GLB assets — no race manifests required.
+// ===========================================================================
+
+export type ArmorType = 'cloth' | 'leather' | 'metal';
+export type EquipmentSlot = 'weapon' | 'head' | 'chest' | 'legs' | 'shield' | 'shoulders' | 'hands' | 'feet';
+
+export interface MeshLayers {
+  cloth: BABYLON.AbstractMesh[];
+  leather: BABYLON.AbstractMesh[];
+  metal: BABYLON.AbstractMesh[];
+  base: BABYLON.AbstractMesh[];
+  all: BABYLON.AbstractMesh[];
+}
+
+export interface LoadedCharacter {
+  rootMesh: BABYLON.AbstractMesh;
+  skeleton: BABYLON.Skeleton | null;
+  animationGroups: BABYLON.AnimationGroup[];
+  meshLayers: MeshLayers;
+  equipment: Map<EquipmentSlot, BABYLON.AbstractMesh[]>;
+  dispose: () => void;
+}
+
+/** Race → GLB path mapping (matching Unity prefabs) */
+export const RACE_MODELS: Record<string, { glb: string; scale: number }> = {
+  human:     { glb: '/assets/models/characters/crusaders_knight.glb', scale: 0.008 },
+  orc:       { glb: '/assets/models/characters/graatorc.glb',         scale: 0.008 },
+  elf:       { glb: '/assets/models/characters/elf_enforcer.glb',     scale: 0.008 },
+  undead:    { glb: '/assets/models/characters/skeletong_warrior.glb', scale: 0.008 },
+  barbarian: { glb: '/assets/models/characters/BarbarianGlad.glb',    scale: 0.008 },
+  dwarf:     { glb: '/assets/models/characters/dwarf_enforcer.glb',   scale: 0.006 },
+};
+
+/** Weapon → GLB path */
+export const WEAPON_MODELS: Record<string, string> = {
+  sword:  '/assets/models/weapons/Sword.glb',
+  axe:    '/assets/models/weapons/Axe.glb',
+  bow:    '/assets/models/weapons/Bow.glb',
+  staff:  '/assets/models/weapons/Staff.glb',
+  shield: '/assets/models/weapons/Shield.glb',
+  dagger: '/assets/models/weapons/Dagger.glb',
+  mace:   '/assets/models/weapons/Mace.glb',
+};
+
+/** Equipment slot → bone name (Mixamo skeleton) */
+const SHOWCASE_SLOT_BONES: Record<EquipmentSlot, string> = {
+  weapon:    'mixamorig:RightHand',
+  shield:    'mixamorig:LeftHand',
+  head:      'mixamorig:Head',
+  chest:     'mixamorig:Spine2',
+  legs:      'mixamorig:Hips',
+  shoulders: 'mixamorig:Spine2',
+  hands:     'mixamorig:RightHand',
+  feet:      'mixamorig:RightFoot',
+};
+
+/** Tier color system (T1-T8) — matches GRUDGE-STUDIO-CONTEXT.md */
+export const TIER_COLORS: Record<number, { name: string; hex: string }> = {
+  1: { name: 'Bronze',  hex: '#8b7355' },
+  2: { name: 'Silver',  hex: '#a8a8a8' },
+  3: { name: 'Blue',    hex: '#4a9eff' },
+  4: { name: 'Purple',  hex: '#9d4dff' },
+  5: { name: 'Red',     hex: '#ff4d4d' },
+  6: { name: 'Orange',  hex: '#ffaa00' },
+  7: { name: 'Gold',    hex: '#d4a84b' },
+  8: { name: 'Shimmer', hex: '#f0d890' },
+};
+
+const ARMOR_BASE_COLORS: Record<ArmorType, BABYLON.Color3> = {
+  cloth:   new BABYLON.Color3(0.2, 0.25, 0.5),
+  leather: new BABYLON.Color3(0.45, 0.3, 0.15),
+  metal:   new BABYLON.Color3(0.55, 0.55, 0.6),
+};
+
+// ── Mesh layer detection ───────────────────────────────────────
+
+function classifyMeshLayers(meshes: BABYLON.AbstractMesh[]): MeshLayers {
+  const layers: MeshLayers = { cloth: [], leather: [], metal: [], base: [], all: [...meshes] };
+
+  for (const mesh of meshes) {
+    if (!mesh.name || mesh.name === '__root__') continue;
+    const lower = mesh.name.toLowerCase();
+
+    if (lower.includes('cloth') || lower.includes('robe') || lower.includes('set_0') || lower.includes('fabric')) {
+      layers.cloth.push(mesh);
+    } else if (lower.includes('leather') || lower.includes('hide') || lower.includes('set_1') || lower.includes('light_armor')) {
+      layers.leather.push(mesh);
+    } else if (lower.includes('metal') || lower.includes('plate') || lower.includes('set_2') || lower.includes('heavy') || lower.includes('chain')) {
+      layers.metal.push(mesh);
+    } else {
+      layers.base.push(mesh);
+    }
+  }
+
+  if (layers.cloth.length === 0 && layers.leather.length === 0 && layers.metal.length === 0) {
+    layers.base = meshes.filter(m => m.name !== '__root__');
+  }
+
+  return layers;
+}
+
+// ── Showcase Core API ──────────────────────────────────────────
+
+export async function loadRaceCharacter(race: string, scene: BABYLON.Scene): Promise<LoadedCharacter> {
+  const model = RACE_MODELS[race];
+  if (!model) throw new Error(`Unknown race: ${race}`);
+
+  const result = await BABYLON.SceneLoader.ImportMeshAsync('', '', model.glb, scene);
+  const root = result.meshes[0];
+  root.scaling.setAll(model.scale);
+
+  const meshLayers = classifyMeshLayers(result.meshes);
+  [...meshLayers.cloth, ...meshLayers.leather, ...meshLayers.metal].forEach(m => m.setEnabled(false));
+  meshLayers.base.forEach(m => m.setEnabled(true));
+
+  if (result.animationGroups.length > 0) {
+    scene.animationPropertiesOverride = scene.animationPropertiesOverride || {
+      enableBlending: true,
+      blendingSpeed: 0.08,
+      loopMode: 1,
+    } as any;
+  }
+
+  return {
+    rootMesh: root,
+    skeleton: result.skeletons[0] || null,
+    animationGroups: result.animationGroups,
+    meshLayers,
+    equipment: new Map(),
+    dispose: () => {
+      result.meshes.forEach(m => m.dispose());
+      result.animationGroups.forEach(ag => ag.dispose());
+      result.skeletons.forEach(s => s.dispose());
+    },
+  };
+}
+
+export function setArmorVisibility(character: LoadedCharacter, armorType: ArmorType | 'none'): void {
+  const { meshLayers } = character;
+  meshLayers.cloth.forEach(m => m.setEnabled(false));
+  meshLayers.leather.forEach(m => m.setEnabled(false));
+  meshLayers.metal.forEach(m => m.setEnabled(false));
+  if (armorType !== 'none') meshLayers[armorType].forEach(m => m.setEnabled(true));
+  meshLayers.base.forEach(m => m.setEnabled(true));
+}
+
+export function setArmorTierShowcase(character: LoadedCharacter, armorType: ArmorType, tier: number): void {
+  const tierColor = TIER_COLORS[tier];
+  if (!tierColor) return;
+  const baseColor = ARMOR_BASE_COLORS[armorType];
+  const tint = BABYLON.Color3.FromHexString(tierColor.hex);
+  const blended = BABYLON.Color3.Lerp(baseColor, tint, 0.4);
+
+  const meshes = character.meshLayers[armorType];
+  const targets = meshes.length > 0 ? meshes : character.meshLayers.base;
+
+  for (const mesh of targets) {
+    if (!mesh.material) continue;
+    if (mesh.material instanceof BABYLON.PBRMaterial) {
+      mesh.material.albedoColor = blended;
+      mesh.material.metallic = armorType === 'metal' ? 0.4 + tier * 0.06 : 0.1 + tier * 0.03;
+      mesh.material.roughness = Math.max(0.2, 0.8 - tier * 0.07);
+    } else if (mesh.material instanceof BABYLON.StandardMaterial) {
+      mesh.material.diffuseColor = blended;
+      mesh.material.specularPower = 16 + tier * 8;
+    }
+  }
+}
+
+/** Re-export under the name CharacterShowcase expects */
+export { setArmorTierShowcase as setArmorTier };
+
+export async function attachEquipment(
+  character: LoadedCharacter,
+  slot: EquipmentSlot,
+  modelPath: string,
+  scene: BABYLON.Scene,
+): Promise<void> {
+  removeEquipment(character, slot);
+  if (!character.skeleton) return;
+
+  const boneName = SHOWCASE_SLOT_BONES[slot];
+  const bone = character.skeleton.bones.find(b => b.name === boneName);
+  if (!bone) {
+    console.warn(`Bone ${boneName} not found for slot ${slot}`);
+    return;
+  }
+
+  const result = await BABYLON.SceneLoader.ImportMeshAsync('', '', modelPath, scene);
+  const equipScale = slot === 'weapon' || slot === 'shield' ? 0.8 : 0.5;
+  result.meshes.forEach(m => m.scaling.setAll(equipScale));
+
+  const root = result.meshes[0];
+  root.attachToBone(bone, character.rootMesh);
+
+  if (slot === 'weapon') {
+    root.position = new BABYLON.Vector3(0, 0.1, 0);
+    root.rotation = new BABYLON.Vector3(0, 0, Math.PI / 4);
+  } else if (slot === 'shield') {
+    root.position = new BABYLON.Vector3(0, 0.1, 0);
+    root.rotation = new BABYLON.Vector3(0, Math.PI, 0);
+  }
+
+  character.equipment.set(slot, result.meshes);
+}
+
+export function removeEquipment(character: LoadedCharacter, slot: EquipmentSlot): void {
+  const meshes = character.equipment.get(slot);
+  if (meshes) {
+    meshes.forEach(m => m.dispose());
+    character.equipment.delete(slot);
+  }
+}
+
+export function playAnimation(
+  character: LoadedCharacter,
+  name: string,
+  loop: boolean = true,
+  speed: number = 1.0,
+): void {
+  const { animationGroups } = character;
+  if (animationGroups.length === 0) return;
+  const lower = name.toLowerCase();
+  const target = animationGroups.find(ag => ag.name.toLowerCase().includes(lower));
+  for (const ag of animationGroups) {
+    if (ag !== target) ag.stop();
+  }
+  if (target) target.start(loop, speed);
+  else animationGroups[0]?.start(loop, speed);
+}
+
+export function getAnimationNames(character: LoadedCharacter): string[] {
+  return character.animationGroups.map(ag => ag.name);
+}
+
+export async function loadEquippedCharacter(
+  race: string,
+  armorType: ArmorType,
+  tier: number,
+  weaponKey: string | null,
+  scene: BABYLON.Scene,
+): Promise<LoadedCharacter> {
+  const character = await loadRaceCharacter(race, scene);
+  setArmorVisibility(character, armorType);
+  setArmorTierShowcase(character, armorType, tier);
+  if (weaponKey && WEAPON_MODELS[weaponKey]) {
+    await attachEquipment(character, 'weapon', WEAPON_MODELS[weaponKey], scene);
+  }
+  playAnimation(character, 'idle');
+  return character;
+}
