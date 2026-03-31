@@ -92,6 +92,7 @@
     "fbx2gltf": "^0.9.7-p1",
     "framer-motion": "^11.13.1",
     "google-auth-library": "^10.5.0",
+    "grudge-gdevelop-assistant": "file:..",
     "grudge-studio": "^1.0.2",
     "havok-n": "^0.0.0",
     "howler": "^2.2.4",
