@@ -14,8 +14,15 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 const GRUDGE_BACKEND = process.env.GRUDGE_BACKEND_URL || 'https://api.grudge-studio.com';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Extract path from query params (catch-all) or from URL directly
   const { path } = req.query;
-  const apiPath = Array.isArray(path) ? path.join('/') : path || '';
+  let apiPath = Array.isArray(path) ? path.join('/') : (path || '');
+
+  // Fallback: parse from URL if query param is empty
+  if (!apiPath && req.url) {
+    const urlPath = req.url.replace(/^\/?api\//, '').split('?')[0];
+    apiPath = urlPath;
+  }
 
   // Skip if this is the health endpoint (handled by its own file)
   if (apiPath === 'health') {
