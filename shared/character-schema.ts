@@ -26,6 +26,80 @@ export const equipmentSlotTypeSchema = z.enum([
 
 export const armorTierSchema = z.enum(["cloth", "leather", "metal"]);
 
+// ---------------------------------------------------------------------------
+// Classes (4) — determines skills, weapon restrictions, abilities
+// ---------------------------------------------------------------------------
+
+export const classIdSchema = z.enum([
+  "warrior",
+  "mage",
+  "ranger",
+  "worge",
+]);
+
+/** Worge transformation forms (class skill, not a race) */
+export const worgeFormSchema = z.enum([
+  "humanoid",      // default form
+  "bear",          // large tank form — powerful melee
+  "raptor",        // invisible rogue form
+  "large-bird",    // flyable mount form — other players/AI can ride
+]);
+
+/** Weapon types each class can equip */
+export const classWeaponRestrictionsSchema = z.object({
+  classId: classIdSchema,
+  allowedWeapons: z.array(weaponTypeSchema),
+});
+
+/** Per-class weapon restrictions (from game design) */
+export const CLASS_WEAPON_RESTRICTIONS: Record<string, string[]> = {
+  warrior: [
+    'sword-shield', 'two-hand-sword', 'hammer', 'mace', 'axe',
+    'harvesting-pick', 'harvesting-axe',
+  ],
+  mage: [
+    'staff-mage', 'wand', 'mace',
+    'harvesting-sickle', 'harvesting-rod',
+  ],
+  ranger: [
+    'bow', 'crossbow', 'gun', 'dagger', 'two-hand-sword', 'spear',
+    'harvesting-knife', 'harvesting-axe',
+  ],
+  worge: [
+    'staff-mage', 'spear', 'dagger', 'bow', 'hammer', 'mace',
+    'harvesting-pick', 'harvesting-sickle',
+  ],
+};
+
+export const classAbilitySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  classId: classIdSchema,
+  description: z.string().default(""),
+  cooldown: z.number().default(0),
+  staminaCost: z.number().default(0),
+  manaCost: z.number().default(0),
+  /** For Worge: which form this ability requires or triggers */
+  requiredWorgeForm: worgeFormSchema.optional(),
+  /** For Warriors: stamina-based charge/sprint mechanics */
+  isStaminaAbility: z.boolean().default(false),
+  /** For Mages: teleport block placement */
+  isTeleportBlock: z.boolean().default(false),
+  /** AoE radius (0 = single target) */
+  aoeRadius: z.number().default(0),
+});
+
+export const classDefinitionSchema = z.object({
+  classId: classIdSchema,
+  name: z.string(),
+  description: z.string(),
+  allowedWeapons: z.array(weaponTypeSchema),
+  allowedArmor: z.array(armorTierSchema),
+  abilities: z.array(classAbilitySchema).default([]),
+  /** Worge-only: available transformation forms */
+  worgeForms: z.array(worgeFormSchema).optional(),
+});
+
 export const weaponTypeSchema = z.enum([
   "unarmed",
   "sword-shield",
@@ -101,9 +175,13 @@ export const equipmentSlotStateSchema = z.object({
 
 export const characterStateSchema = z.object({
   raceId: raceIdSchema,
+  classId: classIdSchema.default("warrior"),
   name: z.string().default(""),
+  level: z.number().int().min(1).default(1),
   equipment: z.array(equipmentSlotStateSchema).default([]),
   activeAnimationSet: weaponTypeSchema.default("unarmed"),
+  /** Worge-only: current transformation form */
+  activeWorgeForm: worgeFormSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -189,12 +267,16 @@ export const raceSkeletonConfigSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export type RaceId = z.infer<typeof raceIdSchema>;
+export type ClassId = z.infer<typeof classIdSchema>;
 export type EquipmentSlotType = z.infer<typeof equipmentSlotTypeSchema>;
 export type ArmorTier = z.infer<typeof armorTierSchema>;
 export type WeaponType = z.infer<typeof weaponTypeSchema>;
+export type WorgeForm = z.infer<typeof worgeFormSchema>;
 export type AnimationAction = z.infer<typeof animationActionSchema>;
 export type EquipmentSlotState = z.infer<typeof equipmentSlotStateSchema>;
 export type CharacterState = z.infer<typeof characterStateSchema>;
+export type ClassAbility = z.infer<typeof classAbilitySchema>;
+export type ClassDefinition = z.infer<typeof classDefinitionSchema>;
 export type AnimationClip = z.infer<typeof animationClipSchema>;
 export type AnimationSet = z.infer<typeof animationSetSchema>;
 export type RaceEquipmentEntry = z.infer<typeof raceEquipmentEntrySchema>;
