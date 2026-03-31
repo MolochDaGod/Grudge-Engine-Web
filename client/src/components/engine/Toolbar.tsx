@@ -16,7 +16,7 @@ import { DemoScenes } from './DemoScenes';
 import { isPuterAvailable } from '@/lib/puter';
 import { aiAssistant } from '@/lib/ai-assistant';
 import { downloadExport } from '@/lib/game-exporter';
-import type { SceneExample } from '@/lib/babylon-examples';
+import type { SceneExample } from '@/lib/reference/babylon-examples';
 
 interface ToolbarProps {
   onApplyExample?: (example: SceneExample) => void;

@@ -1,5 +1,5 @@
 import { isPuterAvailable, aiChatUniversal, aiChatStream as puterChatStream, PUTER_AI_MODELS } from './puter';
-import { getImportKnowledgeForAI } from './gltf-import-knowledge';
+import { getImportKnowledgeForAI } from './reference/gltf-import-knowledge';
 
 export type AIProvider = 'ollama' | 'puter' | 'openai' | 'anthropic' | 'deepseek' | 'grudge-hub';
 export type AgentRole = 'dev' | 'balance' | 'lore' | 'art' | 'mission' | 'companion' | 'general';

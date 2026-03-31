@@ -6,7 +6,7 @@ import {
   generateImage,
   textToSpeech 
 } from './puter';
-import { getImportKnowledgeForAI } from './gltf-import-knowledge';
+import { getImportKnowledgeForAI } from './reference/gltf-import-knowledge';
 
 export interface AIAssistantConfig {
   preferFreeModels: boolean;

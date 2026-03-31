@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { BABYLON_EXAMPLES, getExamplesByCategory, type SceneExample } from '@/lib/babylon-examples';
+import { BABYLON_EXAMPLES, getExamplesByCategory, type SceneExample } from '@/lib/reference/babylon-examples';
 import { useEngineStore } from '@/lib/engine-store';
 import { cn } from '@/lib/utils';
 
