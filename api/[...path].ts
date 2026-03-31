@@ -24,16 +24,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     apiPath = urlPath;
   }
 
-  // Debug: echo what we received
-  if (apiPath === '' || apiPath === 'debug-proxy') {
-    return res.status(200).json({
-      receivedPath: apiPath,
-      queryPath: req.query.path,
-      url: req.url,
-      method: req.method,
-    });
-  }
-
   // Skip if this is the health endpoint (handled by its own file)
   if (apiPath === 'health') {
     return res.status(200).json({ status: 'ok', note: 'Use /api/health directly' });
