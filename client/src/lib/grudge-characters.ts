@@ -14,10 +14,9 @@
  *   Assets/uMMORPG/Bundle Configs/Prefabs/Entities/Players/[Warrior|Archer|Human].prefab
  */
 
-// ─── Enums ────────────────────────────────────────────────────────────────────
-
-export type RaceId = 'human' | 'elf' | 'orc' | 'undead' | 'barbarian' | 'dwarf';
-export type ClassId = 'warrior' | 'mage' | 'ranger' | 'worge';
+// Types imported from shared schema (single source of truth)
+import type { RaceId, ClassId } from '@shared/character-schema';
+export type { RaceId, ClassId };
 export type SceneId = 'mobile' | 'island' | 'dojo';
 
 // ─── Scenes ───────────────────────────────────────────────────────────────────
@@ -98,11 +97,13 @@ export interface GrudgeClass {
   description: string;
   role: string;
   weapons: string[];
-  /** Matching GLB from public/assets/characters/ */
-  modelGlb: string;
-  modelScale: number;
-  /** Unity Bundle Configs prefab */
-  unityPrefab: string;
+  /**
+   * Class does NOT determine the character model — race does.
+   * The player's race base mesh (e.g. barbarian-base.fbx) is the body.
+   * Class determines starting gear which changes the visual appearance.
+   */
+  startingWeaponType: string;
+  startingArmorTier: string;
   primaryColor: string;
   accentColor: string;
   abilities: string[];
@@ -115,9 +116,8 @@ export const GRUDGE_CLASSES: Record<ClassId, GrudgeClass> = {
     description: 'Frontline fighter with shields and heavy blades. Double jump, AoE attacks, group invincibility.',
     role: 'Tank / DPS',
     weapons: ['Shield', 'Sword', '2H Weapon'],
-    modelGlb: '/assets/characters/knight/KnightAndSword.glb',
-    modelScale: 1.0,
-    unityPrefab: 'Bundle Configs/Prefabs/Entities/Players/Warrior.prefab',
+    startingWeaponType: 'sword-shield',
+    startingArmorTier: 'metal',
     primaryColor: '#8b6914',
     accentColor: '#d4a017',
     abilities: ['Shield Bash', 'Berserker Rush', 'Holy Charge', 'Warcry'],
@@ -128,9 +128,8 @@ export const GRUDGE_CLASSES: Record<ClassId, GrudgeClass> = {
     description: 'Master of elemental magic. Staff spells, teleport blocks, particle shields.',
     role: 'Ranged DPS / Support',
     weapons: ['Staff', 'Tome', 'Mace', 'Off-hand Relic', 'Wand'],
-    modelGlb: '/assets/characters/knight/KnightAndSword.glb',
-    modelScale: 0.9,
-    unityPrefab: 'Bundle Configs/Prefabs/Entities/Players/Human.prefab',
+    startingWeaponType: 'staff-mage',
+    startingArmorTier: 'cloth',
     primaryColor: '#1a3a8b',
     accentColor: '#4a7ad4',
     abilities: ['Arcane Syphon', 'Ice Particles', 'Fire Shield', 'Holy Nova'],
@@ -141,9 +140,8 @@ export const GRUDGE_CLASSES: Record<ClassId, GrudgeClass> = {
     description: 'Precision archer. Parry counters, dash attacks, ranged burst fire.',
     role: 'Ranged DPS',
     weapons: ['Bow', 'Crossbow', 'Gun', 'Dagger', '2H Sword', 'Spear'],
-    modelGlb: '/assets/characters/lizard/scene.gltf',
-    modelScale: 1.0,
-    unityPrefab: 'Bundle Configs/Prefabs/Entities/Players/Archer.prefab',
+    startingWeaponType: 'bow',
+    startingArmorTier: 'leather',
     primaryColor: '#2d6b2d',
     accentColor: '#5cb85c',
     abilities: ['Nature Charge', 'Devine Charge', 'Spirit', 'Arcane Syphon'],
@@ -154,9 +152,8 @@ export const GRUDGE_CLASSES: Record<ClassId, GrudgeClass> = {
     description: '3 forms: Bear (tank), Raptor (stealth), Large Bird (flyable mount). Staff/spear hybrid.',
     role: 'Shapeshifter / Hybrid',
     weapons: ['Staff', 'Spear', 'Dagger', 'Bow', 'Hammer', 'Mace', 'Off-hand Relic'],
-    modelGlb: '/assets/characters/warbear/scene.gltf',
-    modelScale: 1.1,
-    unityPrefab: 'Prefabs/Entities/Players/Orc.prefab',
+    startingWeaponType: 'staff-mage',
+    startingArmorTier: 'leather',
     primaryColor: '#6b2d6b',
     accentColor: '#b85cb8',
     abilities: ['Berserker Rush', 'Nature Charge', 'Spirit', 'Warcry'],

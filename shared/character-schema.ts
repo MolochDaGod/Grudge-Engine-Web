@@ -26,80 +26,6 @@ export const equipmentSlotTypeSchema = z.enum([
 
 export const armorTierSchema = z.enum(["cloth", "leather", "metal"]);
 
-// ---------------------------------------------------------------------------
-// Classes (4) — determines skills, weapon restrictions, abilities
-// ---------------------------------------------------------------------------
-
-export const classIdSchema = z.enum([
-  "warrior",
-  "mage",
-  "ranger",
-  "worge",
-]);
-
-/** Worge transformation forms (class skill, not a race) */
-export const worgeFormSchema = z.enum([
-  "humanoid",      // default form
-  "bear",          // large tank form — powerful melee
-  "raptor",        // invisible rogue form
-  "large-bird",    // flyable mount form — other players/AI can ride
-]);
-
-/** Weapon types each class can equip */
-export const classWeaponRestrictionsSchema = z.object({
-  classId: classIdSchema,
-  allowedWeapons: z.array(weaponTypeSchema),
-});
-
-/** Per-class weapon restrictions (from game design) */
-export const CLASS_WEAPON_RESTRICTIONS: Record<string, string[]> = {
-  warrior: [
-    'sword-shield', 'two-hand-sword', 'hammer', 'mace', 'axe',
-    'harvesting-pick', 'harvesting-axe',
-  ],
-  mage: [
-    'staff-mage', 'wand', 'mace',
-    'harvesting-sickle', 'harvesting-rod',
-  ],
-  ranger: [
-    'bow', 'crossbow', 'gun', 'dagger', 'two-hand-sword', 'spear',
-    'harvesting-knife', 'harvesting-axe',
-  ],
-  worge: [
-    'staff-mage', 'spear', 'dagger', 'bow', 'hammer', 'mace',
-    'harvesting-pick', 'harvesting-sickle',
-  ],
-};
-
-export const classAbilitySchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  classId: classIdSchema,
-  description: z.string().default(""),
-  cooldown: z.number().default(0),
-  staminaCost: z.number().default(0),
-  manaCost: z.number().default(0),
-  /** For Worge: which form this ability requires or triggers */
-  requiredWorgeForm: worgeFormSchema.optional(),
-  /** For Warriors: stamina-based charge/sprint mechanics */
-  isStaminaAbility: z.boolean().default(false),
-  /** For Mages: teleport block placement */
-  isTeleportBlock: z.boolean().default(false),
-  /** AoE radius (0 = single target) */
-  aoeRadius: z.number().default(0),
-});
-
-export const classDefinitionSchema = z.object({
-  classId: classIdSchema,
-  name: z.string(),
-  description: z.string(),
-  allowedWeapons: z.array(weaponTypeSchema),
-  allowedArmor: z.array(armorTierSchema),
-  abilities: z.array(classAbilitySchema).default([]),
-  /** Worge-only: available transformation forms */
-  worgeForms: z.array(worgeFormSchema).optional(),
-});
-
 export const weaponTypeSchema = z.enum([
   "unarmed",
   "sword-shield",
@@ -115,12 +41,126 @@ export const weaponTypeSchema = z.enum([
   "gun",
   "wand",
   "mace",
+  "tome",
+  "off-hand-relic",
   "harvesting-pick",
   "harvesting-axe",
   "harvesting-sickle",
   "harvesting-rod",
   "harvesting-knife",
 ]);
+
+// ---------------------------------------------------------------------------
+// Classes (4) — determines skills, weapon restrictions, abilities
+// Race = body model (which of the 6 Toon_RTS characters)
+// Class = gameplay (skills, weapon restrictions, starting gear)
+// Any race can be any class.
+// ---------------------------------------------------------------------------
+
+export const classIdSchema = z.enum([
+  "warrior",
+  "mage",
+  "ranger",
+  "worge",
+]);
+
+/** Worge transformation forms (class skill, not a race — like Druid) */
+export const worgeFormSchema = z.enum([
+  "humanoid",      // default form
+  "bear",          // large tank form — powerful melee
+  "raptor",        // invisible rogue form
+  "large-bird",    // flyable mount form — other players/AI can ride
+]);
+
+/** Per-class weapon restrictions (from game design rules) */
+export const CLASS_WEAPON_RESTRICTIONS: Record<string, string[]> = {
+  warrior: [
+    'sword-shield', 'two-hand-sword', 'hammer', 'mace', 'axe',
+    'harvesting-pick', 'harvesting-axe',
+  ],
+  mage: [
+    'staff-mage', 'wand', 'mace', 'tome', 'off-hand-relic',
+    'harvesting-sickle', 'harvesting-rod',
+  ],
+  ranger: [
+    'bow', 'crossbow', 'gun', 'dagger', 'two-hand-sword', 'spear',
+    'harvesting-knife', 'harvesting-axe',
+  ],
+  worge: [
+    'staff-mage', 'spear', 'dagger', 'bow', 'hammer', 'mace', 'off-hand-relic',
+    'harvesting-pick', 'harvesting-sickle',
+  ],
+};
+
+/**
+ * T0 starting gear per class.
+ * Race determines the body model; class determines what gear they start with.
+ * All gear is cloth tier at T0.
+ */
+export const CLASS_STARTING_GEAR: Record<string, Array<{ slotType: string; weaponType?: string; armorTier?: string }>> = {
+  warrior: [
+    { slotType: 'weapon', weaponType: 'sword-shield' },
+    { slotType: 'shield' },
+    { slotType: 'head', armorTier: 'metal' },
+    { slotType: 'chest', armorTier: 'metal' },
+    { slotType: 'legs', armorTier: 'metal' },
+    { slotType: 'hands', armorTier: 'leather' },
+    { slotType: 'feet', armorTier: 'leather' },
+  ],
+  mage: [
+    { slotType: 'weapon', weaponType: 'staff-mage' },
+    { slotType: 'head', armorTier: 'cloth' },
+    { slotType: 'chest', armorTier: 'cloth' },
+    { slotType: 'legs', armorTier: 'cloth' },
+    { slotType: 'hands', armorTier: 'cloth' },
+    { slotType: 'feet', armorTier: 'cloth' },
+  ],
+  ranger: [
+    { slotType: 'weapon', weaponType: 'bow' },
+    { slotType: 'head', armorTier: 'leather' },
+    { slotType: 'chest', armorTier: 'leather' },
+    { slotType: 'legs', armorTier: 'leather' },
+    { slotType: 'hands', armorTier: 'leather' },
+    { slotType: 'feet', armorTier: 'leather' },
+  ],
+  worge: [
+    { slotType: 'weapon', weaponType: 'staff-mage' },
+    { slotType: 'head', armorTier: 'leather' },
+    { slotType: 'chest', armorTier: 'leather' },
+    { slotType: 'legs', armorTier: 'cloth' },
+    { slotType: 'hands', armorTier: 'leather' },
+    { slotType: 'feet', armorTier: 'leather' },
+  ],
+};
+
+export const classAbilitySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  classId: classIdSchema,
+  description: z.string().default(""),
+  cooldown: z.number().default(0),
+  staminaCost: z.number().default(0),
+  manaCost: z.number().default(0),
+  requiredWorgeForm: worgeFormSchema.optional(),
+  isStaminaAbility: z.boolean().default(false),
+  isTeleportBlock: z.boolean().default(false),
+  aoeRadius: z.number().default(0),
+});
+
+export const classDefinitionSchema = z.object({
+  classId: classIdSchema,
+  name: z.string(),
+  description: z.string(),
+  allowedWeapons: z.array(weaponTypeSchema),
+  allowedArmor: z.array(armorTierSchema),
+  abilities: z.array(classAbilitySchema).default([]),
+  worgeForms: z.array(worgeFormSchema).optional(),
+  startingGear: z.array(z.object({
+    slotType: equipmentSlotTypeSchema,
+    weaponType: weaponTypeSchema.optional(),
+    armorTier: armorTierSchema.optional(),
+  })).default([]),
+});
 
 export const animationActionSchema = z.enum([
   "idle",

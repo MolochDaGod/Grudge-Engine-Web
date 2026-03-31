@@ -175,8 +175,8 @@ export function CharacterSelect({ onEnterWorld }: CharacterSelectProps) {
         <div className="w-72 flex-shrink-0 flex flex-col border-r border-gray-800 bg-gray-900/30">
           <div className="flex-1 relative">
             <CharacterViewer
-              glbPath={cls.modelGlb}
-              scale={cls.modelScale}
+              glbPath={`/assets/characters/races/${selection.race}/${selection.race}-base.fbx`}
+              scale={1.0}
               accentColor={cls.accentColor}
             />
             {/* Race badge */}
@@ -456,7 +456,5 @@ export function CharacterSelect({ onEnterWorld }: CharacterSelectProps) {
   );
 }
 
-// Preload all character models
-Object.values(GRUDGE_CLASSES).forEach(c => {
-  try { useGLTF.preload(c.modelGlb); } catch {}
-});
+// Preload race base models (once converted from FBX to GLB via asset pipeline)
+// TODO: Enable preloading after running scripts/convert-race-assets.mjs
