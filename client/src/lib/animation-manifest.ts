@@ -39,11 +39,26 @@ export const RACE_MODEL_PATHS: Record<Race, string> = {
 };
 
 /**
- * Fallback: use the standard Mixamo X-Bot rig if the race model isn't found.
- * The X-Bot is included in ergoudan and shares the same skeleton as all
- * Mixamo downloads.
+ * Fallback: Idle animation GLB that includes the Mixamo character mesh.
+ * Used when a race model fails to load.
  */
 export const XBOT_FALLBACK = '/models/characters/x-bot.glb';
+
+/**
+ * Additional one-shot animation clips that can be loaded and merged at
+ * runtime for attacks, harvesting, dodge, etc.
+ */
+export const EXTRA_ANIM_PATHS = {
+  attack_axe:   '/models/animations/attack_axe.glb',
+  harvest:      '/models/animations/harvest.glb',
+  land:         '/models/animations/land.glb',
+  hit:          '/models/animations/hit.glb',
+  jump:         '/models/animations/jump.glb',
+  injured_walk: '/models/animations/injured_walk.glb',
+  cast:         '/models/animations/cast.glb',
+  dodge:        '/models/animations/dodge.glb',
+  run:          '/models/animations/run.glb',
+} as const;
 
 // ── Weapon categories ─────────────────────────────────────────────────────────
 

@@ -1,19 +1,21 @@
 /**
  * GrudgeScene.tsx
- * Babylon.js scene that loads the Grudge Warlords MOBILE world (GLTF/GLB).
- * Engine: Babylon.js (unified with the rest of the project)
+ * Babylon.js scene with Havok physics character controller.
+ * Race model + weapon animation set driven by CharacterSelection.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  Engine, Scene, ArcRotateCamera, HemisphericLight, DirectionalLight,
-  Vector3, Color3, Color4, MeshBuilder, StandardMaterial, SceneLoader,
-  ShadowGenerator, DynamicTexture, Mesh,
+  Engine, Scene, HemisphericLight, DirectionalLight,
+  Vector3, Color3, Color4, MeshBuilder, StandardMaterial,
+  SceneLoader, ShadowGenerator, DynamicTexture, Mesh,
 } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
-import { Loader2, Map, Play, Pause, RotateCcw } from 'lucide-react';
+import { Loader2, Map, Sword, Crosshair, Swords, Zap, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { spawnGrudgeCharacter, type HavokCharacterController } from '@/lib/havok-character-controller';
+import { type WeaponSlot, CLASS_WEAPON_SLOTS } from '@/lib/animation-manifest';
 
 const GRUDGE_SCENE_URL = '/assets/scenes/grudge-mobile/scene.glb';
 const PLACEHOLDER_TERRAIN = true;
@@ -90,136 +92,159 @@ interface GrudgeSceneProps {
   onBack?: () => void;
 }
 
-export function GrudgeScene({ onBack }: GrudgeSceneProps = {}) {
+const WEAPON_ICONS: Partial<Record<WeaponSlot, React.ReactNode>> = {
+  unarmed:     <Swords className="w-3 h-3" />,
+  sword:       <Sword className="w-3 h-3" />,
+  sword_shield:<Shield className="w-3 h-3" />,
+  two_handed:  <Swords className="w-3 h-3" />,
+  staff:       <Zap className="w-3 h-3" />,
+  bow:         <Crosshair className="w-3 h-3" />,
+  gun:         <Crosshair className="w-3 h-3" />,
+};
+
+export function GrudgeScene({ selection, onBack }: GrudgeSceneProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine | null>(null);
-  const keysRef = useRef<Record<string, boolean>>({});
-  const playerRef = useRef<Mesh | null>(null);
+  const ctrlRef   = useRef<HavokCharacterController | null>(null);
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]     = useState(true);
+  const [loadMsg, setLoadMsg]     = useState('Initialising Havok physics...');
   const [nodeCount, setNodeCount] = useState(0);
-  const [fps, setFps] = useState(0);
-  const [sceneLoaded, setSceneLoaded] = useState(false);
+  const [fps, setFps]             = useState(0);
+  const [mode, setMode]           = useState<'harvest' | 'combat'>('harvest');
+  const [weapon, setWeapon]       = useState<WeaponSlot>('unarmed');
+
+  const race      = selection?.race          ?? 'human';
+  const charClass = selection?.characterClass ?? 'warrior';
+  const availWeapons: WeaponSlot[] = [
+    ...CLASS_WEAPON_SLOTS[charClass as keyof typeof CLASS_WEAPON_SLOTS] ?? ['unarmed'],
+  ];
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const engine = new Engine(canvas, true);
+
+    const engine = new Engine(canvas, true, { adaptToDeviceRatio: true });
     engineRef.current = engine;
-    const scene = new Scene(engine);
-    scene.clearColor = new Color4(0.15, 0.2, 0.3, 1);
-    const camera = new ArcRotateCamera('cam', -Math.PI / 2, Math.PI / 3, 80, Vector3.Zero(), scene);
-    camera.attachControl(canvas, true);
-    camera.lowerRadiusLimit = 5;
-    camera.upperRadiusLimit = 300;
-    const hemi = new HemisphericLight('hemi', new Vector3(0, 1, 0), scene);
-    hemi.intensity = 0.6;
-    hemi.groundColor = new Color3(0.15, 0.15, 0.2);
-    const sun = new DirectionalLight('sun', new Vector3(-1, -2, -1), scene);
-    sun.intensity = 0.8;
-    sun.position = new Vector3(100, 200, 100);
+    const grudgeScene = new Scene(engine);
+    grudgeScene.clearColor = new Color4(0.12, 0.16, 0.25, 1);
+
+    // Lighting
+    const hemi = new HemisphericLight('hemi', new Vector3(0, 1, 0), grudgeScene);
+    hemi.intensity = 0.5;
+    hemi.groundColor = new Color3(0.1, 0.1, 0.18);
+    const sun = new DirectionalLight('sun', new Vector3(-1, -2, -1), grudgeScene);
+    sun.intensity = 1.0;
+    sun.position  = new Vector3(60, 120, 60);
     const shadows = new ShadowGenerator(2048, sun);
     shadows.useBlurExponentialShadowMap = true;
-    const player = MeshBuilder.CreateCapsule('player', { radius: 0.5, height: 2 }, scene);
-    player.position = new Vector3(0, 1, 0);
-    const pm = new StandardMaterial('playerMat', scene);
-    pm.diffuseColor = new Color3(0.3, 0.6, 1.0);
-    player.material = pm;
-    player.isVisible = false;
-    playerRef.current = player;
-    shadows.addShadowCaster(player);
-    setLoading(true);
-    SceneLoader.ImportMeshAsync('', '/assets/scenes/grudge-mobile/', 'scene.glb', scene)
-      .then((result) => {
-        result.meshes.forEach(m => { m.receiveShadows = true; shadows.addShadowCaster(m); });
-        setNodeCount(result.meshes.length);
-        setSceneLoaded(true);
-        setLoading(false);
-      })
-      .catch(() => {
-        if (PLACEHOLDER_TERRAIN) buildPlaceholderScene(scene, shadows);
-        setNodeCount(FACTION_CITIES.length * 3 + 21);
-        setSceneLoaded(true);
-        setLoading(false);
-      });
-    const onKeyDown = (e: KeyboardEvent) => { keysRef.current[e.code] = true; };
-    const onKeyUp = (e: KeyboardEvent) => { keysRef.current[e.code] = false; };
-    window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('keyup', onKeyUp);
-    engine.runRenderLoop(() => {
-      const p = playerRef.current;
-      if (p?.isVisible) {
-        const speed = keysRef.current['ShiftLeft'] ? 12 : 5;
-        const dt = engine.getDeltaTime() / 1000;
-        const cam = scene.activeCamera as ArcRotateCamera;
-        const forward = new Vector3(-Math.sin(cam.alpha), 0, -Math.cos(cam.alpha));
-        const right = new Vector3(Math.cos(cam.alpha), 0, -Math.sin(cam.alpha));
-        const move = Vector3.Zero();
-        if (keysRef.current['KeyW']) move.addInPlace(forward);
-        if (keysRef.current['KeyS']) move.subtractInPlace(forward);
-        if (keysRef.current['KeyA']) move.subtractInPlace(right);
-        if (keysRef.current['KeyD']) move.addInPlace(right);
-        if (move.length() > 0) { move.normalize().scaleInPlace(speed * dt); p.position.addInPlace(move); cam.target = p.position.clone(); }
-      }
-      setFps(Math.round(engine.getFps()));
-      scene.render();
+
+    // World geometry
+    setLoadMsg('Building world...');
+    SceneLoader.ImportMeshAsync('', '/assets/scenes/grudge-mobile/', 'scene.glb', grudgeScene)
+      .then(r => { r.meshes.forEach(m => { m.receiveShadows = true; shadows.addShadowCaster(m); }); setNodeCount(r.meshes.length); })
+      .catch(() => { buildPlaceholderScene(grudgeScene, shadows); setNodeCount(FACTION_CITIES.length * 3 + 21); });
+
+    // Spawn Havok character
+    setLoadMsg(`Spawning ${race} ${charClass}...`);
+    spawnGrudgeCharacter(
+      grudgeScene, canvas,
+      { race: race as any, charClass: charClass as any, walkSpeed: 6, runSpeed: 13 },
+      shadows,
+    ).then(ctrl => {
+      ctrlRef.current = ctrl;
+      setLoading(false);
+      setMode(ctrl.getMode());
+      setWeapon(ctrl.getWeapon());
+    }).catch(err => {
+      console.error('[GrudgeScene] spawn error:', err);
+      setLoadMsg('Failed to spawn character. Check console.');
     });
+
+    // FPS counter
+    engine.runRenderLoop(() => { setFps(Math.round(engine.getFps())); grudgeScene.render(); });
     const onResize = () => engine.resize();
     window.addEventListener('resize', onResize);
+
     return () => {
-      window.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('resize', onResize);
-      scene.dispose();
+      ctrlRef.current?.dispose();
+      ctrlRef.current = null;
+      grudgeScene.dispose();
       engine.dispose();
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [race, charClass]);
 
-  const togglePlay = () => {
-    const p = playerRef.current;
-    if (!p) return;
-    const next = !isPlaying;
-    p.isVisible = next;
-    setIsPlaying(next);
+  const handleEquip = (w: WeaponSlot) => {
+    setWeapon(w);
+    ctrlRef.current?.equip(w);
   };
 
-  const resetCamera = () => {
-    const engine = engineRef.current;
-    if (!engine) return;
-    const scene = engine.scenes[0];
-    const cam = scene?.activeCamera as ArcRotateCamera;
-    if (cam) { cam.alpha = -Math.PI / 2; cam.beta = Math.PI / 3; cam.radius = 80; cam.target = Vector3.Zero(); }
+  const handleModeToggle = () => {
+    ctrlRef.current?.toggleMode();
+    setMode(prev => prev === 'harvest' ? 'combat' : 'harvest');
   };
 
   return (
     <div className="relative w-full h-full bg-gray-950">
       <canvas ref={canvasRef} className="w-full h-full outline-none" />
+
+      {/* Loading overlay */}
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-          <div className="flex items-center gap-3 bg-gray-900 px-6 py-4 rounded-lg border border-gray-700">
-            <Loader2 className="w-5 h-5 animate-spin text-yellow-400" />
-            <span className="text-sm text-gray-200">Loading Grudge World...</span>
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70">
+          <div className="flex flex-col items-center gap-3 bg-gray-900 px-8 py-6 rounded-xl border border-gray-700">
+            <Loader2 className="w-6 h-6 animate-spin text-yellow-400" />
+            <span className="text-sm text-gray-200">{loadMsg}</span>
+            <span className="text-xs text-gray-500">Havok physics + {race} model</span>
           </div>
         </div>
       )}
-      <div className="absolute top-3 left-3 flex gap-2">
-        <Button size="sm" variant={isPlaying ? 'secondary' : 'outline'} onClick={togglePlay} className="h-8">
-          {isPlaying ? <Pause className="w-4 h-4 mr-1" /> : <Play className="w-4 h-4 mr-1" />}
-          {isPlaying ? 'Stop' : 'Play'}
-        </Button>
-        <Button size="sm" variant="outline" onClick={resetCamera} className="h-8">
-          <RotateCcw className="w-4 h-4 mr-1" />Reset
-        </Button>
-      </div>
+
+      {/* Top-left: back + reset */}
+      {!loading && (
+        <div className="absolute top-3 left-3 flex gap-2">
+          {onBack && (
+            <Button size="sm" variant="outline" onClick={onBack} className="h-8">
+              ← Back
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={handleModeToggle} className={`h-8 ${mode === 'combat' ? 'border-red-500 text-red-400' : 'border-green-600 text-green-400'}`}>
+            {mode === 'combat' ? <Crosshair className="w-3.5 h-3.5 mr-1" /> : <Map className="w-3.5 h-3.5 mr-1" />}
+            {mode === 'combat' ? 'Combat' : 'Harvest'}
+          </Button>
+          <Button size="sm" variant="outline" className="h-8" onClick={() => { ctrlRef.current?.playAction('harvest'); }}>
+            ⛏ Harvest
+          </Button>
+        </div>
+      )}
+
+      {/* Top-right: stats */}
       <div className="absolute top-3 right-3 flex gap-2">
-        {sceneLoaded && <Badge variant="outline" className="bg-black/60 text-xs"><Map className="w-3 h-3 mr-1" />{nodeCount} objects</Badge>}
+        {nodeCount > 0 && <Badge variant="outline" className="bg-black/60 text-xs"><Map className="w-3 h-3 mr-1" />{nodeCount} objs</Badge>}
         <Badge variant="outline" className="bg-black/60 text-xs font-mono">{fps} FPS</Badge>
-        <Badge variant="outline" className="bg-black/60 text-xs">Babylon.js</Badge>
+        <Badge variant="outline" className="bg-black/60 text-xs capitalize" style={{ borderColor: '#d4af37' }}>{race}</Badge>
       </div>
-      {isPlaying && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-gray-300 text-xs px-4 py-2 rounded-full border border-gray-600">
-          WASD move · Shift sprint · Mouse orbit
+
+      {/* Bottom weapon bar */}
+      {!loading && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-black/80 border border-gray-700 rounded-full px-3 py-1.5">
+          {availWeapons.map(w => (
+            <button
+              key={w}
+              onClick={() => handleEquip(w)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs transition-all ${
+                weapon === w
+                  ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/60'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'
+              }`}
+              title={w.replace(/_/g, ' ')}
+            >
+              {WEAPON_ICONS[w] ?? <Sword className="w-3 h-3" />}
+              <span className="hidden sm:inline capitalize">{w.replace(/_/g, ' ')}</span>
+            </button>
+          ))}
+          <span className="ml-2 text-gray-600 text-[10px] border-l border-gray-700 pl-2">Tab = {mode} mode</span>
         </div>
       )}
     </div>
