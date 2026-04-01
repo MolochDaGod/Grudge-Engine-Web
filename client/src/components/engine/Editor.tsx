@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useEngineStore } from '@/lib/engine-store';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Toolbar } from './Toolbar';
 import { SceneHierarchy } from './SceneHierarchy';
@@ -12,16 +13,40 @@ export function Editor() {
   const [isBottomPanelCollapsed, setIsBottomPanelCollapsed] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
+  const { isPlaying, isPaused, setPlaying, setPaused, addConsoleLog } = useEngineStore();
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Command palette
       if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'p')) {
         e.preventDefault();
         setCommandPaletteOpen(true);
+        return;
+      }
+      // Play mode shortcuts
+      if (e.key === 'F5') {
+        e.preventDefault();
+        if (!isPlaying || isPaused) {
+          setPlaying(true); setPaused(false);
+          addConsoleLog({ type: 'info', message: 'Game started', source: 'Engine' });
+        }
+      }
+      if (e.key === 'F6') {
+        e.preventDefault();
+        if (isPlaying) {
+          setPaused(!isPaused);
+          addConsoleLog({ type: 'info', message: isPaused ? 'Game resumed' : 'Game paused', source: 'Engine' });
+        }
+      }
+      if (e.key === 'F7') {
+        e.preventDefault();
+        setPlaying(false); setPaused(false);
+        addConsoleLog({ type: 'info', message: 'Game stopped', source: 'Engine' });
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [isPlaying, isPaused, setPlaying, setPaused, addConsoleLog]);
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-background" data-testid="editor">

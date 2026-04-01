@@ -285,7 +285,7 @@ export function Viewport() {
       )}
 
       <div className="absolute bottom-3 left-3 flex gap-2 items-center">
-        <Badge variant="outline" className="text-xs font-mono bg-sidebar/80 backdrop-blur-sm">Babylon.js v7</Badge>
+<Badge variant="outline" className="text-xs font-mono bg-sidebar/80 backdrop-blur-sm">Babylon.js v8</Badge>
         <Badge variant="outline" className="text-xs font-mono bg-sidebar/80 backdrop-blur-sm">WebGL 2.0</Badge>
         <Badge variant="outline" className="text-xs font-mono bg-sidebar/80 backdrop-blur-sm capitalize">{gizmoMode} Tool</Badge>
         <Button variant="ghost" size="icon" className="h-6 w-6 bg-sidebar/80 backdrop-blur-sm" onClick={() => setShowHelp(true)} data-testid="button-help">

@@ -48,7 +48,7 @@ const DEFAULT_OPTIONS: ExportOptions = {
   projectName: 'My Game',
   includePlayMode: true,
   includeDebugUI: false,
-  babylonVersion: '7.0.0',
+  babylonVersion: '8.x',
   quality: 'medium'
 };
 
@@ -271,10 +271,10 @@ export function exportToHTML(project: Project, options: Partial<ExportOptions> =
     <span>Loading ${escapeHTML(opts.projectName)}...</span>
   </div>
   
-  <!-- Babylon.js CDN -->
-  <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-  <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+  <!-- Babylon.js 8.x CDN -->
+  <script src="https://cdn.babylonjs.com/babylon.js?v=8"></script>
+  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js?v=8"></script>
+  <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js?v=8"></script>
   
   <script>
     (function() {

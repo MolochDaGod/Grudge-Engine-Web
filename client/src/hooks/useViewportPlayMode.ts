@@ -26,6 +26,14 @@ interface Params {
   gizmoManagerRef: MutableRefObject<BABYLON.GizmoManager | null>;
 }
 
+// Snapshot of mesh world transforms taken just before play starts.
+interface MeshSnapshot {
+  position: BABYLON.Vector3;
+  rotationQuaternion: BABYLON.Quaternion | null;
+  rotation: BABYLON.Vector3;
+  scaling: BABYLON.Vector3;
+}
+
 export function useViewportPlayMode({
   sceneRef, canvasRef, meshMapRef, animationGroupsRef,
   controllerRef, warriorControllerRef, npcBehaviorsRef, gizmoManagerRef
@@ -35,6 +43,8 @@ export function useViewportPlayMode({
   const combatObserverRef = useRef<BABYLON.Observer<BABYLON.Scene> | null>(null);
   const physicsWorldRef = useRef<RapierPhysicsWorld | null>(null);
   const physicsObserverRef = useRef<BABYLON.Observer<BABYLON.Scene> | null>(null);
+  // Scene state snapshot for restore-on-stop
+  const snapshotRef = useRef<Map<string, MeshSnapshot>>(new Map());
   const [combatStats, setCombatStats] = useState<CombatStats>({
     player: { health: 100, maxHealth: 100, stamina: 100, maxStamina: 100 },
     enemy: null
@@ -48,6 +58,18 @@ export function useViewportPlayMode({
     let cancelled = false;
 
     if (isPlaying) {
+      // ── Snapshot all mesh transforms before play ─────────────────────────
+      snapshotRef.current.clear();
+      scene.meshes.forEach(mesh => {
+        if (mesh.name.startsWith('__') || mesh.name === 'grid' || mesh.name === 'skyBox') return;
+        snapshotRef.current.set(mesh.uniqueId.toString(), {
+          position:         mesh.position.clone(),
+          rotationQuaternion: mesh.rotationQuaternion?.clone() ?? null,
+          rotation:         mesh.rotation.clone(),
+          scaling:          mesh.scaling.clone(),
+        });
+      });
+
       setupPlayModeEnvironment(scene);
 
       const sceneData = getCurrentScene();
@@ -318,6 +340,24 @@ export function useViewportPlayMode({
         addConsoleLog({ type: 'info', message: `${npcBehaviorsRef.current.size} NPC AI behaviors stopped`, source: 'AI' });
       }
       npcBehaviorsRef.current.clear();
+
+      // ── Restore mesh transforms from snapshot ──────────────────────────
+      if (snapshotRef.current.size > 0 && sceneRef.current) {
+        sceneRef.current.meshes.forEach(mesh => {
+          const snap = snapshotRef.current.get(mesh.uniqueId.toString());
+          if (!snap) return;
+          mesh.position.copyFrom(snap.position);
+          mesh.rotation.copyFrom(snap.rotation);
+          mesh.scaling.copyFrom(snap.scaling);
+          if (snap.rotationQuaternion) {
+            mesh.rotationQuaternion = snap.rotationQuaternion.clone();
+          } else {
+            mesh.rotationQuaternion = null;
+          }
+        });
+        addConsoleLog({ type: 'info', message: 'Scene state restored from pre-play snapshot', source: 'Engine' });
+        snapshotRef.current.clear();
+      }
     }
 
     return () => {
