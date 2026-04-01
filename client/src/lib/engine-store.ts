@@ -4,7 +4,7 @@ import { isPuterAvailable } from './puter';
 export { componentRegistry } from './componentRegistry';
 
 // Bottom panel tab types
-export type BottomTabType = 'console' | 'timeline' | 'animation' | 'ai' | 'scripts' | 'library' | 'profiler' | 'settings' | 'build' | 'audio' | 'lighting' | 'sdk';
+export type BottomTabType = 'console' | 'timeline' | 'animation' | 'ai' | 'scripts' | 'library' | 'profiler' | 'settings' | 'build' | 'audio' | 'lighting' | 'sdk' | 'pipeline';
 
 export interface BottomTabInfo {
   id: BottomTabType;
@@ -31,7 +31,8 @@ export const DEFAULT_BOTTOM_TABS: BottomTabInfo[] = [
   { id: 'lighting', label: 'Lighting', icon: 'Sun', visible: true, order: 8 },
   { id: 'settings', label: 'Project', icon: 'Settings', visible: true, order: 9 },
   { id: 'build', label: 'Build', icon: 'Package', visible: true, order: 10 },
-  { id: 'sdk', label: 'SDK & AI', icon: 'Plug', visible: true, order: 11 },
+  { id: 'sdk',      label: 'SDK & AI',  icon: 'Plug',     visible: true,  order: 11 },
+  { id: 'pipeline', label: 'Pipeline',   icon: 'Workflow',  visible: true,  order: 12 },
 ];
 
 export const DEFAULT_BOTTOM_TAB_CONFIG: BottomTabConfig = {

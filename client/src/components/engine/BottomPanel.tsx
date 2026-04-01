@@ -15,9 +15,12 @@ import { ProjectSettingsPanel } from './panels/ProjectSettingsPanel';
 import { BuildSettingsPanel } from './panels/BuildSettingsPanel';
 import { AIStudioPanel } from './panels/AIStudioPanel';
 import { SDKPanel } from './panels/SDKPanel';
+import { PipelinePanel } from './panels/PipelinePanel';
+
+import { Workflow } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  Terminal, Clock, Film, Sparkles, FileCode, Library, Activity, Settings, Package, Volume2, Sun, Plug
+  Terminal, Clock, Film, Sparkles, FileCode, Library, Activity, Settings, Package, Volume2, Sun, Plug, Workflow
 };
 
 function getTabIcon(iconName: string) {
@@ -48,6 +51,7 @@ export function BottomPanel({ isCollapsed, onToggleCollapse }: BottomPanelProps)
       case 'settings':  return <ProjectSettingsPanel />;
       case 'build':     return <BuildSettingsPanel />;
       case 'sdk':       return <SDKPanel />;
+      case 'pipeline':  return <PipelinePanel />;
       default:          return <ConsolePanel />;
     }
   };
