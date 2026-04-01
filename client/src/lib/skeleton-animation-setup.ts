@@ -1,29 +1,28 @@
+/**
+ * Skeleton Animation Setup — backward-compatible re-exports.
+ * The canonical implementation is now in animation-blending.ts.
+ */
 import * as BABYLON from '@babylonjs/core';
+import {
+  configureSkeletonBlending,
+  playSkeletonRange,
+  blendSkeletonRanges,
+  enableMatrixInterpolation,
+  type SkeletonBlendConfig,
+} from './animation-blending';
 
-export interface SkeletonAnimationConfig {
-  enableBlending?: boolean;
-  blendingSpeed?: number;
-  loopMode?: number;
-}
+// Re-export types under the old name for backward compat
+export type SkeletonAnimationConfig = SkeletonBlendConfig;
 
 export function configureSkeletonAnimations(
   skeleton: BABYLON.Skeleton,
   config: SkeletonAnimationConfig = {}
 ): void {
-  const {
-    enableBlending = true,
-    blendingSpeed = 0.07,
-    loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-  } = config;
-
-  // Enable animation interpolation for smooth blending
-  BABYLON.Animation.AllowMatricesInterpolation = true;
-
-  // Create animation properties override for smooth transitions
-  skeleton.animationPropertiesOverride = new BABYLON.AnimationPropertiesOverride();
-  skeleton.animationPropertiesOverride.enableBlending = enableBlending;
-  skeleton.animationPropertiesOverride.blendingSpeed = blendingSpeed;
-  skeleton.animationPropertiesOverride.loopMode = loopMode;
+  configureSkeletonBlending(skeleton, {
+    enableBlending: config.enableBlending ?? true,
+    blendingSpeed: config.blendingSpeed ?? 0.07,
+    loopMode: config.loopMode,
+  });
 }
 
 export function configureAllSkeletons(
@@ -51,12 +50,7 @@ export function playAnimationRange(
   animationName: string,
   loop: boolean = true
 ): BABYLON.Animatable | null {
-  const range = skeleton.getAnimationRange(animationName);
-  if (!range) {
-    console.warn(`Animation range "${animationName}" not found on skeleton`);
-    return null;
-  }
-  return scene.beginAnimation(skeleton, range.from, range.to, loop);
+  return playSkeletonRange(scene, skeleton, animationName, loop);
 }
 
 export function blendAnimationRanges(
@@ -70,31 +64,7 @@ export function blendAnimationRanges(
     console.error('Animation names and weights must have same length');
     return [];
   }
-
-  scene.stopAnimation(skeleton);
-
-  const animatables: BABYLON.Animatable[] = [];
-  let totalWeight = 0;
-
-  for (let i = 0; i < animationNames.length; i++) {
-    const range = skeleton.getAnimationRange(animationNames[i]);
-    if (!range) {
-      console.warn(`Animation range "${animationNames[i]}" not found`);
-      continue;
-    }
-
-    const weight = weights[i] / weights.reduce((a, b) => a + b, 0);
-    const anim = scene.beginWeightedAnimation(skeleton, range.from, range.to, weight, loop);
-    
-    if (i > 0 && animatables.length > 0) {
-      anim.syncWith(animatables[0]);
-    }
-    
-    animatables.push(anim);
-    totalWeight += weight;
-  }
-
-  return animatables;
+  return blendSkeletonRanges(scene, skeleton, animationNames, weights, loop);
 }
 
 export function stopSkeletonAnimations(
@@ -103,3 +73,23 @@ export function stopSkeletonAnimations(
 ): void {
   scene.stopAnimation(skeleton);
 }
+
+// Re-export everything from the unified module for new code
+export {
+  enableMatrixInterpolation,
+  configureSkeletonBlending,
+  playSkeletonRange,
+  blendSkeletonRanges,
+  setupAnimationBlending,
+  createGroupBlendState,
+  updateGroupBlend,
+  updateMultiGroupBlend,
+  playGroupImmediate,
+  stopAllGroups,
+  computeLocomotionWeights,
+} from './animation-blending';
+
+export type {
+  AnimGroupBlendState,
+  LocomotionBlendTree,
+} from './animation-blending';

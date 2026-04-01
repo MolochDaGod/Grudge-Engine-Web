@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useEngineStore } from '@/lib/engine-store';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Toolbar } from './Toolbar';
 import { SceneHierarchy } from './SceneHierarchy';
 import { Viewport } from './Viewport';
 import { Inspector } from './Inspector';
 import { AssetBrowser } from './AssetBrowser';
+import { TemplateBrowser } from './TemplateBrowser';
+import { ObjectStoreBrowser } from './ObjectStoreBrowser';
 import { BottomPanel } from './BottomPanel';
 import { CommandPalette } from './CommandPalette';
 
@@ -83,7 +86,22 @@ export function Editor() {
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel id="panel-assets" defaultSize={40} minSize={20}>
-                <AssetBrowser />
+                <Tabs defaultValue="assets" className="h-full flex flex-col">
+                  <TabsList className="h-7 w-full justify-start rounded-none border-b border-sidebar-border bg-sidebar px-1 shrink-0">
+                    <TabsTrigger value="assets" className="h-5 text-[10px] px-2">Assets</TabsTrigger>
+                    <TabsTrigger value="templates" className="h-5 text-[10px] px-2">Templates</TabsTrigger>
+                    <TabsTrigger value="objectstore" className="h-5 text-[10px] px-2">Object Store</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="assets" className="flex-1 mt-0 overflow-hidden">
+                    <AssetBrowser />
+                  </TabsContent>
+                  <TabsContent value="templates" className="flex-1 mt-0 overflow-hidden">
+                    <TemplateBrowser />
+                  </TabsContent>
+                  <TabsContent value="objectstore" className="flex-1 mt-0 overflow-hidden">
+                    <ObjectStoreBrowser />
+                  </TabsContent>
+                </Tabs>
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>

@@ -1847,5 +1847,159 @@ export async function registerRoutes(
     }
   });
 
+  // ============================================
+  // OBJECTSTORE R2 PROXY ROUTES
+  // ============================================
+  // Proxies requests to objectstore.grudge-studio.com to avoid CORS issues
+  // and leverages the Grudge pipeline for model conversion before R2 upload.
+
+  const R2_WORKER_URLS = [
+    'https://objectstore.grudge-studio.com',
+    'https://grudgeassets.grudge.workers.dev',
+  ];
+  let resolvedR2Url = R2_WORKER_URLS[0];
+
+  // Resolve best R2 worker URL on startup
+  (async () => {
+    for (const url of R2_WORKER_URLS) {
+      try {
+        const res = await fetch(`${url}/v1/health`, { signal: AbortSignal.timeout(5000) });
+        if (res.ok) { resolvedR2Url = url; break; }
+      } catch { /* try next */ }
+    }
+  })();
+
+  // Health check proxy
+  app.get("/api/objectstore/health", async (_req, res) => {
+    try {
+      const r2Res = await fetch(`${resolvedR2Url}/v1/health`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (r2Res.ok) {
+        const data = await r2Res.json();
+        res.json({ online: true, workerUrl: resolvedR2Url, ...data });
+      } else {
+        res.json({ online: false, status: r2Res.status });
+      }
+    } catch (error) {
+      res.json({ online: false, error: 'R2 unreachable' });
+    }
+  });
+
+  // List 3D models from R2 (proxied, paginated)
+  app.get("/api/objectstore/models", async (req, res) => {
+    try {
+      const prefix = (req.query.prefix as string) || '';
+      const limit = parseInt((req.query.limit as string) || '1000', 10);
+      const cursor = (req.query.cursor as string) || '';
+
+      let url = `${resolvedR2Url}/v1/assets?limit=${limit}`;
+      if (prefix) url += `&prefix=${encodeURIComponent(prefix)}`;
+      if (cursor) url += `&cursor=${encodeURIComponent(cursor)}`;
+
+      const r2Res = await fetch(url);
+      const data = await r2Res.json();
+      res.json(data);
+    } catch (error) {
+      res.status(502).json({ error: 'Failed to fetch from R2' });
+    }
+  });
+
+  // Proxy download a file from R2 (with caching headers)
+  app.get("/api/objectstore/file/*", async (req, res) => {
+    try {
+      const key = req.params[0];
+      if (!key) return res.status(400).json({ error: 'Missing file key' });
+
+      const encodedKey = key.split('/').map(encodeURIComponent).join('/');
+      const r2Res = await fetch(`${resolvedR2Url}/v1/assets/${encodedKey}/file`);
+
+      if (!r2Res.ok) {
+        return res.status(r2Res.status).json({ error: 'File not found in R2' });
+      }
+
+      const contentType = r2Res.headers.get('content-type') || 'application/octet-stream';
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 24h cache
+      res.setHeader('Access-Control-Allow-Origin', '*');
+
+      const buffer = Buffer.from(await r2Res.arrayBuffer());
+      res.send(buffer);
+    } catch (error) {
+      res.status(502).json({ error: 'Failed to proxy R2 file' });
+    }
+  });
+
+  // Upload model: convert via Grudge pipeline if needed, then push to R2
+  app.post("/api/objectstore/upload", modelUpload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+      const inputPath = req.file.path;
+      const ext = path.extname(req.file.originalname).toLowerCase();
+      const originalName = path.basename(req.file.originalname, ext);
+      let glbPath = inputPath;
+      let glbFilename = req.file.originalname;
+
+      // Convert non-GLB formats via Grudge pipeline
+      if (ext !== '.glb') {
+        const convertedDir = path.join(process.cwd(), 'public', 'assets', 'converted');
+        if (!fs.existsSync(convertedDir)) fs.mkdirSync(convertedDir, { recursive: true });
+        const outFilename = `${originalName}-${Date.now()}.glb`;
+        const outPath = path.join(convertedDir, outFilename);
+
+        if (ext === '.fbx') {
+          const convert = require('fbx2gltf');
+          await convert(inputPath, outPath, []);
+        } else {
+          const gltfBin = path.join(process.cwd(), 'node_modules/.bin/gltf-transform');
+          const { execFile } = await import('child_process');
+          await new Promise<void>((resolve, reject) => {
+            execFile(gltfBin, ['copy', inputPath, outPath], { timeout: 120000 }, (err) => err ? reject(err) : resolve());
+          });
+        }
+
+        glbPath = outPath;
+        glbFilename = `${originalName}.glb`;
+
+        // Clean up original temp file
+        if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
+      }
+
+      // Read converted GLB and upload to R2
+      const glbBuffer = fs.readFileSync(glbPath);
+      const fd = new FormData();
+      fd.append('file', new Blob([glbBuffer], { type: 'model/gltf-binary' }), glbFilename);
+      fd.append('filename', glbFilename);
+      fd.append('sourceName', req.file.originalname);
+      fd.append('sourceFormat', ext.replace('.', ''));
+      fd.append('sourceSize', String(req.file.size));
+
+      const r2Res = await fetch(`${resolvedR2Url}/v1/convert`, {
+        method: 'POST',
+        body: fd,
+      });
+
+      // Clean up converted file
+      if (glbPath !== inputPath && fs.existsSync(glbPath)) fs.unlinkSync(glbPath);
+
+      if (!r2Res.ok) {
+        const err = await r2Res.json().catch(() => ({}));
+        return res.status(r2Res.status).json({ error: `R2 upload failed: ${(err as any).error || r2Res.status}` });
+      }
+
+      const result = await r2Res.json();
+      res.json({
+        success: true,
+        ...result,
+        convertedFrom: ext !== '.glb' ? ext : undefined,
+      });
+    } catch (error: any) {
+      if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      console.error('ObjectStore upload error:', error);
+      res.status(500).json({ error: `Upload failed: ${error.message}` });
+    }
+  });
+
   return httpServer;
 }

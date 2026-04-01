@@ -5,6 +5,9 @@ import { ArcRotateCamera, Vector3, SceneLoader, TransformNode } from '@babylonjs
 import { useEngineStore } from '@/lib/engine-store';
 import { CharacterController } from '@/lib/character-controller';
 import { WarriorPlayerController } from '@/lib/warrior-controller';
+import { loadObjectStoreModel } from '@/lib/objectstore-loader';
+import type { ObjectStoreModel } from '@/lib/objectstore-client';
+import { setupAnimationBlending, enableMatrixInterpolation } from '@/lib/animation-blending';
 
 interface Params {
   sceneRef: MutableRefObject<BABYLON.Scene | null>;
@@ -270,13 +273,110 @@ export function useViewportEffects({
               registerAnimations(gameObjectId, result.animationGroups.map(ag => ag.name));
               result.animationGroups.forEach(ag => ag.stop());
             }
-            addConsoleLog({ type: 'info', message: `"${name}" loaded — ${result.meshes.length} meshes${result.animationGroups?.length ? `, ${result.animationGroups.length} animations` : ''}`, source: 'Viewport' });
+            // Auto-configure animation blending
+            const blending = setupAnimationBlending(scene, result);
+            addConsoleLog({ type: 'info', message: `"${name}" loaded — ${result.meshes.length} meshes${result.animationGroups?.length ? `, ${result.animationGroups.length} animations` : ''}${blending.locomotionTree ? ' (locomotion blend tree)' : ''}`, source: 'Viewport' });
           }
         })
         .catch(err => { addConsoleLog({ type: 'error', message: `Failed to load "${name}": ${err.message}`, source: 'Viewport' }); })
         .finally(() => { setLoadingModels(prev => prev.filter(n => n !== name)); });
     }
   }, [pendingViewportLoads]);
+
+  // Handle ObjectStore model loading (from ObjectStoreBrowser clicks/drags)
+  useEffect(() => {
+    const handleObjectStoreLoad = async (e: Event) => {
+      const detail = (e as CustomEvent).detail as {
+        name: string;
+        path: string;
+        format: string;
+        source: string;
+        r2Url?: string;
+      };
+      const scene = sceneRef.current;
+      if (!scene || !detail) return;
+
+      const model: ObjectStoreModel = {
+        name: detail.name,
+        path: detail.path,
+        format: detail.format as any,
+        category: '',
+        sizeKB: 0,
+        source: detail.source as any,
+        r2Url: detail.r2Url,
+      };
+
+      setLoadingModels(prev => [...prev, detail.name]);
+      try {
+        const { result } = await loadObjectStoreModel(model, scene, (msg) => {
+          addConsoleLog({ type: 'info', message: msg, source: 'ObjectStore' });
+        });
+
+        if (result.meshes.length > 0) {
+          const rootMesh = result.meshes[0];
+          const id = crypto.randomUUID();
+          rootMesh.name = id;
+          rootMesh.id = id;
+          meshMapRef.current.set(id, rootMesh);
+          const firstMesh = result.meshes.find(m => m.getTotalVertices() > 0);
+          if (firstMesh) gizmoMeshRef.current.set(id, firstMesh);
+
+          if (result.animationGroups?.length) {
+            animationGroupsRef.current.set(id, result.animationGroups);
+            registerAnimations(id, result.animationGroups.map(ag => ag.name));
+            result.animationGroups.forEach(ag => ag.stop());
+          }
+
+          result.meshes.forEach(m => {
+            m.receiveShadows = true;
+            if (shadowGeneratorRef.current && m.getTotalVertices() > 0) {
+              shadowGeneratorRef.current.addShadowCaster(m);
+            }
+          });
+
+          const store = useEngineStore.getState();
+          store.addGameObject({
+            id,
+            name: detail.name.replace(/\.[^.]+$/, ''),
+            visible: true,
+            parentId: null,
+            isStatic: false,
+            tags: ['objectstore'],
+            layer: 0,
+            children: [],
+            transform: {
+              position: { x: 0, y: 0, z: 0 },
+              rotation: { x: 0, y: 0, z: 0 },
+              scale: { x: 1, y: 1, z: 1 },
+            },
+            components: [{
+              id: crypto.randomUUID(),
+              type: 'mesh',
+              enabled: true,
+              properties: {
+                type: 'imported',
+                modelPath: detail.path,
+                source: 'objectstore',
+              },
+            }],
+          });
+
+          addConsoleLog({
+            type: 'info',
+            message: `Added ${detail.name} to scene (${result.meshes.length} meshes)`,
+            source: 'ObjectStore',
+          });
+        }
+      } catch (err: any) {
+        addConsoleLog({ type: 'error', message: `Failed: ${err.message}`, source: 'ObjectStore' });
+      } finally {
+        setLoadingModels(prev => prev.filter(n => n !== detail.name));
+      }
+    };
+
+    window.addEventListener('objectstore:load-model', handleObjectStoreLoad);
+    return () => window.removeEventListener('objectstore:load-model', handleObjectStoreLoad);
+  }, [addConsoleLog, registerAnimations]);
 
   // Focus on object from hierarchy double-click
   useEffect(() => {
