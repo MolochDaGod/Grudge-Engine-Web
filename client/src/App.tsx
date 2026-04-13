@@ -9,6 +9,7 @@ import EditorPage from "@/pages/editor";
 import NotFound from "@/pages/not-found";
 import { CharacterShowcase } from "@/components/engine/CharacterShowcase";
 import GrudgePage from "@/pages/grudge";
+import ThreeDemoPage from "@/pages/three-demo";
 
 function Router() {
   return (
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/play" component={GrudgePage} />
       <Route path="/grudge" component={GrudgePage} />
       <Route path="/character-showcase" component={CharacterShowcase} />
+      <Route path="/three" component={ThreeDemoPage} />
       <Route component={NotFound} />
     </Switch>
   );
