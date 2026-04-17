@@ -174,6 +174,7 @@ interface EngineState {
   isPlaying: boolean;
   isPaused: boolean;
   currentTime: number;
+  runtimeEngine: 'three' | 'babylon';
   activeBottomTab: BottomTabType;
   activeRightTab: 'transform' | 'asset' | 'material' | 'components';
   bottomTabConfig: BottomTabConfig;
@@ -207,6 +208,7 @@ interface EngineState {
   setPlaying: (playing: boolean) => void;
   setPaused: (paused: boolean) => void;
   setCurrentTime: (time: number) => void;
+  setRuntimeEngine: (engine: 'three' | 'babylon') => void;
   setActiveBottomTab: (tab: BottomTabType) => void;
   setBottomTabConfig: (config: BottomTabConfig) => void;
   toggleBottomTabVisibility: (tab: BottomTabType) => void;
@@ -396,6 +398,7 @@ export const useEngineStore = create<EngineState>((set, get) => ({
   isPlaying: false,
   isPaused: false,
   currentTime: 0,
+  runtimeEngine: 'three' as const,
   activeBottomTab: 'console',
   activeRightTab: 'transform',
   bottomTabConfig: loadBottomTabConfig(),
@@ -531,6 +534,7 @@ export const useEngineStore = create<EngineState>((set, get) => ({
   setPlaying: (playing) => set({ isPlaying: playing }),
   setPaused: (paused) => set({ isPaused: paused }),
   setCurrentTime: (time) => set({ currentTime: time }),
+  setRuntimeEngine: (engine: 'three' | 'babylon') => set({ runtimeEngine: engine }),
   setActiveBottomTab: (tab) => set({ activeBottomTab: tab }),
   setBottomTabConfig: (config) => {
     saveBottomTabConfig(config);

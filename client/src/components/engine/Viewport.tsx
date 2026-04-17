@@ -23,6 +23,7 @@ import { useViewportPlayMode } from '@/hooks/useViewportPlayMode';
 import { useViewportDragDrop } from '@/hooks/useViewportDragDrop';
 import { useViewportEffects } from '@/hooks/useViewportEffects';
 import { useViewportActions } from '@/hooks/useViewportActions';
+import { useThreeViewport } from '@/hooks/useThreeViewport';
 
 export function Viewport() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -48,18 +49,27 @@ export function Viewport() {
   const [adminPanelVisible, setAdminPanelVisible] = useState(false);
   const [currentRPGSceneId, setCurrentRPGSceneId] = useState<string | null>(null);
 
-  const { showStats, viewMode, toggleGrid, toggleStats, setViewMode, showGrid, isPlaying, isPaused, setPlaying, setPaused, addConsoleLog, getCurrentScene } = useEngineStore();
+  const { showStats, viewMode, toggleGrid, toggleStats, setViewMode, showGrid, isPlaying, isPaused, setPlaying, setPaused, addConsoleLog, getCurrentScene, runtimeEngine } = useEngineStore();
 
   const { gizmoMode, inspectorVisible, postProcessEnabled, quickAddObject, spawnPlayerCharacter, autoRigSelectedModel, toggleInspector, togglePostProcess, updateGizmoMode } = useViewportActions({
     sceneRef, meshMapRef, gizmoMeshRef, animationGroupsRef,
     gizmoManagerRef, renderPipelineRef, setLoadingModels
   });
 
-  useViewportScene({
-    canvasRef, engineRef, sceneRef, gizmoManagerRef, meshMapRef, gizmoMeshRef,
-    animationGroupsRef, shadowGeneratorRef, controllerRef, renderPipelineRef,
-    setFps, setDrawCalls, setVertices, setWebGLError, setSelectedMeshName, setLoadingModels
-  });
+  // Three.js runtime (active when runtimeEngine === 'three')
+  useThreeViewport(
+    runtimeEngine === 'three'
+      ? { canvasRef, setFps, setDrawCalls, setVertices, setWebGLError, setLoadingModels }
+      // Pass dummy noop refs when inactive so hook still runs (but canvas guard prevents init)
+      : { canvasRef: { current: null } as any, setFps, setDrawCalls, setVertices, setWebGLError, setLoadingModels }
+  );
+
+  // Babylon runtime (active when runtimeEngine === 'babylon')
+  useViewportScene(
+    runtimeEngine === 'babylon'
+      ? { canvasRef, engineRef, sceneRef, gizmoManagerRef, meshMapRef, gizmoMeshRef, animationGroupsRef, shadowGeneratorRef, controllerRef, renderPipelineRef, setFps, setDrawCalls, setVertices, setWebGLError, setSelectedMeshName, setLoadingModels }
+      : { canvasRef: { current: null } as any, engineRef, sceneRef, gizmoManagerRef, meshMapRef, gizmoMeshRef, animationGroupsRef, shadowGeneratorRef, controllerRef, renderPipelineRef, setFps, setDrawCalls, setVertices, setWebGLError, setSelectedMeshName, setLoadingModels }
+  );
 
   const { combatStats } = useViewportPlayMode({
     sceneRef, canvasRef, meshMapRef, animationGroupsRef,
@@ -98,7 +108,7 @@ export function Viewport() {
 
   return (
     <div
-      className="relative h-full bg-background"
+      className="relative h-full bg-background overflow-hidden"
       data-testid="viewport"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -117,11 +127,16 @@ export function Viewport() {
         </div>
       )}
 
-      {!isPlaying && (
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <canvas ref={canvasRef} className="w-full h-full outline-none" data-testid="viewport-canvas" />
-          </ContextMenuTrigger>
+      {/* Single stable canvas — NEVER conditionally mounted; context menu wraps the whole viewport */}
+      <ContextMenu>
+        <ContextMenuTrigger asChild disabled={isPlaying}>
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full outline-none"
+            data-testid="viewport-canvas"
+          />
+        </ContextMenuTrigger>
+        {!isPlaying && (
           <ContextMenuContent className="w-48">
             <ContextMenuSub>
               <ContextMenuSubTrigger><Box className="w-4 h-4 mr-2" />Add Mesh</ContextMenuSubTrigger>
@@ -145,9 +160,8 @@ export function Viewport() {
             <ContextMenuItem onClick={spawnPlayerCharacter} data-testid="menu-spawn-player"><User className="w-4 h-4 mr-2" />Spawn Player Character</ContextMenuItem>
             <ContextMenuItem onClick={autoRigSelectedModel} data-testid="menu-auto-rig"><Wand2 className="w-4 h-4 mr-2" />AI Auto-Rig Model</ContextMenuItem>
           </ContextMenuContent>
-        </ContextMenu>
-      )}
-      {isPlaying && <canvas ref={canvasRef} className="w-full h-full outline-none" data-testid="viewport-canvas" />}
+        )}
+      </ContextMenu>
 
       {!isPlaying && (
         <div className="absolute top-3 left-3 flex flex-col gap-1 bg-sidebar/80 backdrop-blur-sm rounded-md p-1 border border-sidebar-border">
@@ -285,7 +299,9 @@ export function Viewport() {
       )}
 
       <div className="absolute bottom-3 left-3 flex gap-2 items-center">
-<Badge variant="outline" className="text-xs font-mono bg-sidebar/80 backdrop-blur-sm">Babylon.js v8</Badge>
+      <Badge variant="outline" className={`text-xs font-mono bg-sidebar/80 backdrop-blur-sm ${runtimeEngine === 'three' ? 'text-blue-400 border-blue-400/40' : ''}`}>
+          {runtimeEngine === 'three' ? 'Three.js r170' : 'Babylon.js v9'}
+        </Badge>
         <Badge variant="outline" className="text-xs font-mono bg-sidebar/80 backdrop-blur-sm">WebGL 2.0</Badge>
         <Badge variant="outline" className="text-xs font-mono bg-sidebar/80 backdrop-blur-sm capitalize">{gizmoMode} Tool</Badge>
         <Button variant="ghost" size="icon" className="h-6 w-6 bg-sidebar/80 backdrop-blur-sm" onClick={() => setShowHelp(true)} data-testid="button-help">

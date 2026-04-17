@@ -87,20 +87,23 @@ function SceneCard({ scene, isLoading, onLoad }: SceneCardProps) {
 export function DemoScenes() {
   const [isOpen, setIsOpen] = useState(false);
   const [loadingSceneId, setLoadingSceneId] = useState<string | null>(null);
-  const { setPresetScene, addConsoleLog, setPlaying } = useEngineStore();
+  const { setPresetScene, addConsoleLog } = useEngineStore();
   const { toast } = useToast();
 
   const handleLoadScene = async (scene: SceneConfig) => {
     setLoadingSceneId(scene.id);
 
     try {
+      // Queue scene build — do NOT call setPlaying here.
+      // buildPlayableScene is async; calling setPlaying before it finishes
+      // triggers play-mode physics/controller setup on an empty scene (race).
+      // useViewportEffects handles playable.start() once the scene is ready.
       setPresetScene(scene.id);
-      addConsoleLog({ type: 'info', message: `Loading demo scene: "${scene.name}" — entering play mode...`, source: 'Demo' });
-      setPlaying(true);
+      addConsoleLog({ type: 'info', message: `Loading demo scene: "${scene.name}" — building assets...`, source: 'Demo' });
       setIsOpen(false);
       toast({
-        title: `Loading "${scene.name}"`,
-        description: 'Demo scene is being built. Check the Console tab for progress.',
+        title: `Building "${scene.name}"`,
+        description: 'Scene assets are loading. Press Space or Play when ready.',
       });
     } catch (err) {
       addConsoleLog({ type: 'error', message: `Failed to queue demo scene: ${err}`, source: 'Demo' });

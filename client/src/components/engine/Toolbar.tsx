@@ -32,7 +32,6 @@ const SCALE_SNAPS = [0.1, 0.25, 0.5, 1];
 export function Toolbar({ onApplyExample, onCommandPalette }: ToolbarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [snapOpen, setSnapOpen] = useState(false);
-  const [runtimeEngine, setRuntimeEngine] = useState<'three' | 'babylon'>('three');
 
   const { user, isAuthenticated, signOut, signInWithPuter, isPuterAvailable: puterReady } = useAuth();
 
@@ -54,6 +53,8 @@ export function Toolbar({ onApplyExample, onCommandPalette }: ToolbarProps) {
     currentSceneId,
     snapSettings,
     setSnapSettings,
+    runtimeEngine,
+    setRuntimeEngine,
   } = useEngineStore();
 
   const handlePlay = () => {
@@ -348,7 +349,7 @@ export function Toolbar({ onApplyExample, onCommandPalette }: ToolbarProps) {
               variant="ghost"
               size="sm"
               className={cn('h-7 px-2 gap-1 text-xs', runtimeEngine === 'three' ? 'text-blue-400' : 'text-orange-400')}
-              onClick={() => setRuntimeEngine(e => e === 'three' ? 'babylon' : 'three')}
+              onClick={() => setRuntimeEngine(runtimeEngine === 'three' ? 'babylon' : 'three')}
               data-testid="button-engine-mode"
             >
               <Box className="w-3.5 h-3.5" />
