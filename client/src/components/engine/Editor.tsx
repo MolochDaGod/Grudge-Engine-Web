@@ -3,6 +3,7 @@ import { useEngineStore } from '@/lib/engine-store';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Toolbar } from './Toolbar';
+import { MenuBar } from './MenuBar';
 import { SceneHierarchy } from './SceneHierarchy';
 import { Viewport } from './Viewport';
 import { Inspector } from './Inspector';
@@ -10,7 +11,9 @@ import { AssetBrowser } from './AssetBrowser';
 import { TemplateBrowser } from './TemplateBrowser';
 import { ObjectStoreBrowser } from './ObjectStoreBrowser';
 import { BottomPanel } from './BottomPanel';
+import { AssetPreviewPanel } from './AssetPreviewPanel';
 import { CommandPalette } from './CommandPalette';
+import { Layers, Box, Database, Package } from 'lucide-react';
 
 export function Editor() {
   const [isBottomPanelCollapsed, setIsBottomPanelCollapsed] = useState(false);
@@ -55,42 +58,50 @@ export function Editor() {
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-background" data-testid="editor">
       <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
 
-      {/* Toolbar always above everything */}
+      {/* Toolbar row */}
       <div className="relative z-30 shrink-0">
         <Toolbar onCommandPalette={() => setCommandPaletteOpen(true)} />
       </div>
 
-      {/* Main editor body */}
+      {/* Menu bar row (File / Edit / Add / View) */}
+      <div className="relative z-30 shrink-0">
+        <MenuBar onCommandPalette={() => setCommandPaletteOpen(true)} />
+      </div>
+
+      {/* Main editor body — Stride-inspired 3-column layout */}
       <div className="flex-1 flex overflow-hidden min-h-0 relative z-0">
         <ResizablePanelGroup
           direction="horizontal"
           className="flex-1"
           id="editor-main"
-          autoSaveId="editor-main-layout"
+          autoSaveId="editor-main-layout-v2"
         >
-          {/* Left sidebar: Hierarchy + Asset Browser */}
-          <ResizablePanel
-            id="panel-left"
-            defaultSize={18}
-            minSize={12}
-            maxSize={30}
-            className="relative z-20"
-          >
-            <ResizablePanelGroup
-              direction="vertical"
-              id="panel-left-vertical"
-              autoSaveId="editor-left-layout"
-            >
-              <ResizablePanel id="panel-hierarchy" defaultSize={60} minSize={30}>
-                <SceneHierarchy />
+          {/* ── LEFT: Scene Hierarchy + Asset Browser (like Stride left panel) */}
+          <ResizablePanel id="panel-left" defaultSize={17} minSize={12} maxSize={28} className="relative z-20">
+            <ResizablePanelGroup direction="vertical" id="panel-left-v" autoSaveId="editor-left-v2">
+
+              {/* Hierarchy */}
+              <ResizablePanel id="panel-hierarchy" defaultSize={58} minSize={25}>
+                <div className="h-full flex flex-col">
+                  <SceneHierarchy />
+                </div>
               </ResizablePanel>
+
               <ResizableHandle withHandle />
-              <ResizablePanel id="panel-assets" defaultSize={40} minSize={20}>
+
+              {/* Asset Browser tabs */}
+              <ResizablePanel id="panel-assets" defaultSize={42} minSize={18}>
                 <Tabs defaultValue="assets" className="h-full flex flex-col">
-                  <TabsList className="h-7 w-full justify-start rounded-none border-b border-sidebar-border bg-sidebar px-1 shrink-0">
-                    <TabsTrigger value="assets" className="h-5 text-[10px] px-2">Assets</TabsTrigger>
-                    <TabsTrigger value="templates" className="h-5 text-[10px] px-2">Templates</TabsTrigger>
-                    <TabsTrigger value="objectstore" className="h-5 text-[10px] px-2">Object Store</TabsTrigger>
+                  <TabsList className="h-8 w-full justify-start rounded-none border-b border-sidebar-border bg-sidebar px-1 shrink-0 gap-0.5">
+                    <TabsTrigger value="assets" className="h-6 text-[10px] px-2 gap-1 data-[state=active]:bg-sidebar-accent">
+                      <Box className="w-3 h-3" />Assets
+                    </TabsTrigger>
+                    <TabsTrigger value="templates" className="h-6 text-[10px] px-2 gap-1 data-[state=active]:bg-sidebar-accent">
+                      <Package className="w-3 h-3" />Templates
+                    </TabsTrigger>
+                    <TabsTrigger value="objectstore" className="h-6 text-[10px] px-2 gap-1 data-[state=active]:bg-sidebar-accent">
+                      <Database className="w-3 h-3" />Store
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="assets" className="flex-1 mt-0 overflow-hidden">
                     <AssetBrowser />
@@ -108,29 +119,19 @@ export function Editor() {
 
           <ResizableHandle withHandle />
 
-          {/* Center: Viewport + Bottom Panel */}
-          <ResizablePanel
-            id="panel-center"
-            defaultSize={60}
-            minSize={30}
-            className="relative z-10"
-          >
-            <ResizablePanelGroup
-              direction="vertical"
-              className="h-full"
-              id="panel-center-vertical"
-              autoSaveId="editor-center-layout"
-            >
-              <ResizablePanel id="panel-viewport" defaultSize={70} minSize={30}>
+          {/* ── CENTER: Viewport (top) + Bottom Panel (console/AI/timeline) */}
+          <ResizablePanel id="panel-center" defaultSize={61} minSize={30} className="relative z-10">
+            <ResizablePanelGroup direction="vertical" className="h-full" id="panel-center-v" autoSaveId="editor-center-v2">
+
+              {/* 3D Viewport */}
+              <ResizablePanel id="panel-viewport" defaultSize={68} minSize={28}>
                 <Viewport />
               </ResizablePanel>
+
               <ResizableHandle withHandle />
-              <ResizablePanel
-                id="panel-bottom"
-                defaultSize={30}
-                minSize={10}
-                maxSize={60}
-              >
+
+              {/* Bottom panel (console / AI / timeline / etc.) */}
+              <ResizablePanel id="panel-bottom" defaultSize={32} minSize={10} maxSize={60}>
                 <BottomPanel
                   isCollapsed={isBottomPanelCollapsed}
                   onToggleCollapse={() => setIsBottomPanelCollapsed(!isBottomPanelCollapsed)}
@@ -141,15 +142,23 @@ export function Editor() {
 
           <ResizableHandle withHandle />
 
-          {/* Right sidebar: Inspector */}
-          <ResizablePanel
-            id="panel-inspector"
-            defaultSize={22}
-            minSize={15}
-            maxSize={35}
-            className="relative z-20"
-          >
-            <Inspector />
+          {/* ── RIGHT: Property Inspector (top) + Asset Preview (bottom, like Stride) */}
+          <ResizablePanel id="panel-right" defaultSize={22} minSize={16} maxSize={34} className="relative z-20">
+            <ResizablePanelGroup direction="vertical" id="panel-right-v" autoSaveId="editor-right-v2">
+
+              {/* Property Grid / Inspector */}
+              <ResizablePanel id="panel-inspector" defaultSize={60} minSize={30}>
+                <Inspector />
+              </ResizablePanel>
+
+              <ResizableHandle withHandle />
+
+              {/* Asset Preview — Three.js PBR viewer (like Stride's bottom-right) */}
+              <ResizablePanel id="panel-preview" defaultSize={40} minSize={15}>
+                <AssetPreviewPanel />
+              </ResizablePanel>
+
+            </ResizablePanelGroup>
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>

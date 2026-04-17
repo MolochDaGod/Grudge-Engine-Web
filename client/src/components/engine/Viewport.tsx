@@ -276,10 +276,26 @@ export function Viewport() {
         }}
       />
 
-      <div className="absolute top-3 right-3 flex gap-1 bg-sidebar/80 backdrop-blur-sm rounded-md p-1 border border-sidebar-border">
-        <Button variant={viewMode === 'pbr' ? 'secondary' : 'ghost'} size="sm" className="h-7 px-2 text-xs" onClick={() => setViewMode('pbr')} data-testid="button-view-pbr">PBR</Button>
-        <Button variant={viewMode === 'wireframe' ? 'secondary' : 'ghost'} size="sm" className="h-7 px-2 text-xs" onClick={() => setViewMode('wireframe')} data-testid="button-view-wireframe">Wireframe</Button>
-        <Button variant={viewMode === 'debug' ? 'secondary' : 'ghost'} size="sm" className="h-7 px-2 text-xs" onClick={() => setViewMode('debug')} data-testid="button-view-debug">Debug</Button>
+      {/* Render mode selector — top right */}
+      <div className="absolute top-3 right-3 flex items-center gap-1 bg-sidebar/80 backdrop-blur-sm rounded-md p-1 border border-sidebar-border">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant={viewMode === 'pbr' ? 'secondary' : 'ghost'} size="sm" className="h-7 px-2 text-xs" onClick={() => setViewMode('pbr')} data-testid="button-view-pbr">PBR</Button>
+          </TooltipTrigger>
+          <TooltipContent>Physically Based Rendering</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant={viewMode === 'wireframe' ? 'secondary' : 'ghost'} size="sm" className="h-7 px-2 text-xs" onClick={() => setViewMode('wireframe')} data-testid="button-view-wireframe">Wire</Button>
+          </TooltipTrigger>
+          <TooltipContent>Wireframe</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant={viewMode === 'debug' ? 'secondary' : 'ghost'} size="sm" className="h-7 px-2 text-xs" onClick={() => setViewMode('debug')} data-testid="button-view-debug">Dbg</Button>
+          </TooltipTrigger>
+          <TooltipContent>Debug (normals/depth)</TooltipContent>
+        </Tooltip>
       </div>
 
       {showStats && (
@@ -298,12 +314,37 @@ export function Viewport() {
         </div>
       )}
 
-      <div className="absolute bottom-3 left-3 flex gap-2 items-center">
-      <Badge variant="outline" className={`text-xs font-mono bg-sidebar/80 backdrop-blur-sm ${runtimeEngine === 'three' ? 'text-blue-400 border-blue-400/40' : ''}`}>
-          {runtimeEngine === 'three' ? 'Three.js r170' : 'Babylon.js v9'}
-        </Badge>
-        <Badge variant="outline" className="text-xs font-mono bg-sidebar/80 backdrop-blur-sm">WebGL 2.0</Badge>
-        <Badge variant="outline" className="text-xs font-mono bg-sidebar/80 backdrop-blur-sm capitalize">{gizmoMode} Tool</Badge>
+      {/* ── XYZ Axis Indicator (bottom-left) — Three.js editor style */}
+      <div className="absolute bottom-3 left-3 flex flex-col gap-1.5">
+        {/* Axis indicator cube */}
+        <div className="w-14 h-14 bg-sidebar/60 backdrop-blur-sm rounded-lg border border-sidebar-border/50 flex items-center justify-center" title="Viewport orientation">
+          <div className="relative w-10 h-10">
+            {/* Z axis (blue, into screen) */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0.5">
+              <div className="w-0.5 h-4 bg-blue-500 rounded-full" />
+              <span className="text-[8px] font-bold text-blue-400">Z</span>
+            </div>
+            {/* X axis (red, right) */}
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+              <div className="h-0.5 w-4 bg-red-500 rounded-full" />
+              <span className="text-[8px] font-bold text-red-400">X</span>
+            </div>
+            {/* Y axis (green, up) */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0.5">
+              <span className="text-[8px] font-bold text-green-400">Y</span>
+              <div className="w-0.5 h-4 bg-green-500 rounded-full" />
+            </div>
+            {/* Centre dot */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-foreground/60" />
+          </div>
+        </div>
+        {/* Engine / mode badges */}
+        <div className="flex flex-wrap gap-1">
+          <Badge variant="outline" className={`text-[10px] font-mono bg-sidebar/80 backdrop-blur-sm ${runtimeEngine === 'three' ? 'text-blue-400 border-blue-400/40' : 'text-orange-400 border-orange-400/40'}`}>
+            {runtimeEngine === 'three' ? 'Three.js' : 'Babylon'}
+          </Badge>
+          <Badge variant="outline" className="text-[10px] font-mono bg-sidebar/80 backdrop-blur-sm capitalize">{gizmoMode}</Badge>
+        </div>
         <Button variant="ghost" size="icon" className="h-6 w-6 bg-sidebar/80 backdrop-blur-sm" onClick={() => setShowHelp(true)} data-testid="button-help">
           <HelpCircle className="w-3.5 h-3.5" />
         </Button>
