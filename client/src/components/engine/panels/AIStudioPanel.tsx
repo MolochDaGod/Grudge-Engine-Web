@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Code, Image, Volume2, Trash2, Wand2, Send, Loader2, Zap, Check, BookOpen, Palette, Target, Users, Scale } from 'lucide-react';
+import { MessageSquare, Code, Image, Volume2, Trash2, Wand2, Send, Loader2, Zap, Check, BookOpen, Palette, Target, Users, Scale, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEngineStore } from '@/lib/engine-store';
+import { useAuth } from '@/contexts/AuthContext';
 import { isPuterAvailable, generateImage } from '@/lib/puter';
 import { localAIAgent, type AgentRole, type AIProvider, AGENT_ROLES } from '@/lib/local-ai-agent';
 import { aiAssistant, AI_QUICK_ACTIONS, type QuickPromptKey } from '@/lib/ai-assistant';
@@ -39,6 +40,21 @@ export function AIStudioPanel() {
   const [activeProvider, setActiveProvider] = useState<AIProvider>(localAIAgent.currentConfig.activeProvider);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { addConsoleLog, addAsset } = useEngineStore();
+  const { user, isAuthenticated } = useAuth();
+
+  // Clear conversations when account changes (different user logs in)
+  const prevAccountRef = useRef<string | null>(null);
+  useEffect(() => {
+    const currentAccount = user?.grudgeId || user?.id || null;
+    if (prevAccountRef.current !== null && prevAccountRef.current !== currentAccount) {
+      // Account switched – clear in-memory history
+      localAIAgent.roles.forEach(r => localAIAgent.clearConversation(r.id));
+      setChatMessages([]);
+      setStreamingText('');
+      addConsoleLog({ type: 'info', message: 'AI conversations cleared for new account session', source: 'AI' });
+    }
+    prevAccountRef.current = currentAccount;
+  }, [user?.grudgeId, user?.id]);
 
   const providerStatus = localAIAgent.getProviderStatus();
   const availableProviders = Object.entries(localAIAgent.currentConfig.providers)
@@ -291,6 +307,20 @@ export function AIStudioPanel() {
           <div className="text-xs text-muted-foreground truncate mt-0.5">
             {localAIAgent.currentConfig.providers[activeProvider]?.name}
           </div>
+          {/* Account context */}
+          <div className="flex items-center gap-1 mt-2 pt-2 border-t border-sidebar-border/50">
+            <UserCircle className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+            <span className="text-xs text-muted-foreground truncate">
+              {isAuthenticated && user
+                ? (user.displayName || user.username)
+                : 'Not signed in'}
+            </span>
+          </div>
+          {isAuthenticated && user?.grudgeId && (
+            <div className="text-[10px] text-muted-foreground/50 font-mono truncate mt-0.5">
+              {user.grudgeId.substring(0, 12)}…
+            </div>
+          )}
         </div>
       </div>
     </div>

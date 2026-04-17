@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Play, Pause, Square, Save, FolderOpen, Settings, Cloud, CloudOff, Undo2, Redo2, Download, Maximize2, Loader2, Sparkles, Rocket, Magnet, Search, ChevronDown } from 'lucide-react';
+import { Play, Pause, Square, Save, FolderOpen, Settings, Cloud, CloudOff, Undo2, Redo2, Download, Maximize2, Loader2, Sparkles, Rocket, Magnet, Search, LogIn, LogOut, User, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
@@ -7,7 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { useEngineStore } from '@/lib/engine-store';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { ExamplesBrowser } from './ExamplesBrowser';
 import { AssetImporter } from './AssetImporter';
@@ -30,8 +32,11 @@ const SCALE_SNAPS = [0.1, 0.25, 0.5, 1];
 export function Toolbar({ onApplyExample, onCommandPalette }: ToolbarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [snapOpen, setSnapOpen] = useState(false);
-  
-  const { 
+  const [runtimeEngine, setRuntimeEngine] = useState<'three' | 'babylon'>('three');
+
+  const { user, isAuthenticated, signOut, signInWithPuter, isPuterAvailable: puterReady } = useAuth();
+
+  const {
     project, 
     isPlaying, 
     isPaused, 
@@ -336,6 +341,23 @@ export function Toolbar({ onApplyExample, onCommandPalette }: ToolbarProps) {
 
         <Separator orientation="vertical" className="h-6 mx-1" />
 
+        {/* Engine mode toggle */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn('h-7 px-2 gap-1 text-xs', runtimeEngine === 'three' ? 'text-blue-400' : 'text-orange-400')}
+              onClick={() => setRuntimeEngine(e => e === 'three' ? 'babylon' : 'three')}
+              data-testid="button-engine-mode"
+            >
+              <Box className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{runtimeEngine === 'three' ? 'Three.js' : 'Babylon'}</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Toggle Renderer (Three.js / Babylon.js)</TooltipContent>
+        </Tooltip>
+
         <Tooltip>
           <TooltipTrigger asChild>
             <div className={cn(
@@ -374,6 +396,62 @@ export function Toolbar({ onApplyExample, onCommandPalette }: ToolbarProps) {
           </TooltipTrigger>
           <TooltipContent>Cloud Sync Status</TooltipContent>
         </Tooltip>
+
+        {/* Account widget */}
+        {isAuthenticated && user ? (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 px-2 gap-1 text-xs" data-testid="button-account">
+                <User className="w-3.5 h-3.5 text-primary" />
+                <span className="hidden md:inline max-w-[80px] truncate">{user.displayName || user.username}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-3" side="bottom" align="end">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-semibold">{user.displayName || user.username}</span>
+                </div>
+                {user.grudgeId && (
+                  <div className="text-xs text-muted-foreground font-mono truncate">
+                    ID: {user.grudgeId.substring(0, 16)}…
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5">
+                  <Badge variant="outline" className="text-xs">{user.role}</Badge>
+                  {user.isPuterUser && <Badge variant="secondary" className="text-xs">Puter</Badge>}
+                </div>
+                <Separator />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start h-7 text-xs gap-2 text-red-400 hover:text-red-300"
+                  onClick={() => signOut()}
+                  data-testid="button-signout"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Sign Out
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 gap-1 text-xs text-muted-foreground"
+                onClick={() => puterReady ? signInWithPuter() : undefined}
+                data-testid="button-signin"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sign In</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Sign in with Grudge / Puter</TooltipContent>
+          </Tooltip>
+        )}
 
         <Tooltip>
           <TooltipTrigger asChild>

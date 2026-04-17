@@ -661,36 +661,109 @@ export async function registerRoutes(
     }
   });
 
+  // Unified AI chat proxy -- handles both simple {message} and multi-provider {provider,model,messages} forms
   app.post("/api/ai/chat", async (req, res) => {
-    try {
-      const { message, context, model } = req.body;
-      
-      // Use Puter AI workers if available
-      if (isPuterAvailable()) {
-        const result = await aiWorkers.gameDevAssistant(message, {
-          engine: "Babylon.js",
-          gameType: context?.gameType || "3D Game",
-          model: model
-        });
-        
-        if (result.success) {
-          return res.json({
-            response: result.response,
-            model: result.model,
-            timestamp: new Date().toISOString(),
-            source: "puter-ai"
+    // Extract optional account context from Authorization header
+    const authHeader = req.headers.authorization || '';
+    const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+    const { provider, model, messages, message, context } = req.body as {
+      provider?: string; model?: string;
+      messages?: Array<{ role: string; content: string }>;
+      message?: string; context?: { gameType?: string };
+    };
+
+    // --- Simple single-message path (Puter server-side AI workers) ---
+    if (message && !provider) {
+      try {
+        if (isPuterAvailable()) {
+          const result = await aiWorkers.gameDevAssistant(message, {
+            engine: "Grudge Engine (Three.js / Babylon.js)",
+            gameType: context?.gameType || "3D Game",
+            model: model,
           });
+          if (result.success) {
+            return res.json({
+              success: true,
+              content: result.response,
+              response: result.response,
+              model: result.model,
+              timestamp: new Date().toISOString(),
+              source: "puter-ai",
+            });
+          }
         }
+        return res.json({
+          success: true,
+          content: `AI Assistant received: "${message}". Set PUTER_AUTH_TOKEN to enable full AI.`,
+          response: `AI Assistant received: "${message}". Set PUTER_AUTH_TOKEN to enable full AI.`,
+          timestamp: new Date().toISOString(),
+          source: "fallback",
+        });
+      } catch (error: any) {
+        return res.status(500).json({ error: "Failed to process AI chat" });
       }
-      
-      // Fallback response when Puter is not available
-      res.json({
-        response: `AI Assistant: I received your message "${message}". To enable full AI capabilities, please set up PUTER_AUTH_TOKEN.`,
-        timestamp: new Date().toISOString(),
-        source: "fallback"
-      });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to process AI chat" });
+    }
+
+    // --- Multi-provider path ---
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'messages array required' });
+    }
+    if (!provider || !['ollama', 'openai', 'anthropic', 'deepseek', 'grudge-hub'].includes(provider)) {
+      return res.status(400).json({ error: `Invalid provider: ${provider}` });
+    }
+
+    try {
+      let content = '';
+
+      if (provider === 'ollama') {
+        const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+        const resp = await fetch(`${ollamaUrl}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: model || 'llama3.2', messages, stream: false }),
+        });
+        const data = await resp.json() as { message?: { content: string } };
+        content = data.message?.content || '';
+      } else if (provider === 'openai' || provider === 'deepseek') {
+        const baseUrl = provider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
+        const key = provider === 'openai' ? process.env.OPENAI_API_KEY : process.env.DEEPSEEK_API_KEY;
+        if (!key) return res.status(400).json({ error: `${provider} API key not configured.` });
+        const resp = await fetch(`${baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+          body: JSON.stringify({ model: model || 'gpt-4o', messages, max_tokens: 4096 }),
+        });
+        const data = await resp.json() as { choices?: Array<{ message?: { content: string } }> };
+        content = data.choices?.[0]?.message?.content || '';
+      } else if (provider === 'anthropic') {
+        const key = process.env.ANTHROPIC_API_KEY;
+        if (!key) return res.status(400).json({ error: 'Anthropic API key not configured.' });
+        const systemMsg = messages.find((m) => m.role === 'system')?.content || '';
+        const userMsgs = messages.filter((m) => m.role !== 'system');
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({ model: model || 'claude-sonnet-4-20250514', max_tokens: 4096, system: systemMsg, messages: userMsgs }),
+        });
+        const data = await resp.json() as { content?: Array<{ text: string }> };
+        content = data.content?.[0]?.text || '';
+      } else if (provider === 'grudge-hub') {
+        const hubUrl = process.env.GRUDGE_HUB_URL || 'https://ai.grudge-studio.com';
+        const key = bearerToken || process.env.GRUDGE_HUB_KEY || '';
+        const resp = await fetch(`${hubUrl}/v1/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(key ? { 'Authorization': `Bearer ${key}` } : {}) },
+          body: JSON.stringify({ model: model || 'llama-3.1-8b', messages }),
+        });
+        if (!resp.ok) return res.status(resp.status).json({ error: `Grudge Hub error: ${resp.status}` });
+        const data = await resp.json() as { response?: string; content?: string; message?: string };
+        content = data.response || data.content || data.message || '';
+      }
+
+      res.json({ success: true, content, provider, model });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || 'AI proxy failed' });
     }
   });
 
@@ -1612,57 +1685,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/ai/chat", async (req, res) => {
-    const { provider, model, messages } = req.body;
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: 'messages array required' });
-    }
-    if (!provider || !['ollama', 'openai', 'anthropic', 'deepseek'].includes(provider)) {
-      return res.status(400).json({ error: `Invalid provider: ${provider}` });
-    }
 
-    try {
-      let content = '';
-
-      if (provider === 'ollama') {
-        const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
-        const resp = await fetch(`${ollamaUrl}/api/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: model || 'llama3.2', messages, stream: false }),
-        });
-        const data = await resp.json() as { message?: { content: string } };
-        content = data.message?.content || '';
-      } else if (provider === 'openai' || provider === 'deepseek') {
-        const baseUrl = provider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
-        const key = provider === 'openai' ? process.env.OPENAI_API_KEY : process.env.DEEPSEEK_API_KEY;
-        if (!key) return res.status(400).json({ error: `${provider} API key not configured. Set ${provider === 'openai' ? 'OPENAI_API_KEY' : 'DEEPSEEK_API_KEY'} environment variable.` });
-        const resp = await fetch(`${baseUrl}/chat/completions`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-          body: JSON.stringify({ model: model || 'gpt-4o', messages, max_tokens: 4096 }),
-        });
-        const data = await resp.json() as { choices?: Array<{ message?: { content: string } }> };
-        content = data.choices?.[0]?.message?.content || '';
-      } else if (provider === 'anthropic') {
-        const key = process.env.ANTHROPIC_API_KEY;
-        if (!key) return res.status(400).json({ error: 'Anthropic API key not configured. Set ANTHROPIC_API_KEY environment variable.' });
-        const systemMsg = messages.find((m: any) => m.role === 'system')?.content || '';
-        const userMsgs = messages.filter((m: any) => m.role !== 'system');
-        const resp = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-          body: JSON.stringify({ model: model || 'claude-sonnet-4-20250514', max_tokens: 4096, system: systemMsg, messages: userMsgs }),
-        });
-        const data = await resp.json() as { content?: Array<{ text: string }> };
-        content = data.content?.[0]?.text || '';
-      }
-
-      res.json({ success: true, content, provider, model });
-    } catch (error: any) {
-      res.status(500).json({ error: error.message || 'AI proxy failed' });
-    }
-  });
 
   app.get("/api/ai/providers/status", async (_req, res) => {
     const providers: Record<string, { available: boolean; status: string }> = {};

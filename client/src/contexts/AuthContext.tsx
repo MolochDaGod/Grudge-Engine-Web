@@ -7,6 +7,7 @@ import {
   getPuterUser,
   type PuterUser 
 } from '@/lib/puter';
+import { grudgeSDK } from '@/lib/grudge-sdk';
 
 export type UserRole = 'admin' | 'developer' | 'ai_agent' | 'premium' | 'user' | 'guest';
 
@@ -17,6 +18,7 @@ export interface AuthUser {
   email?: string;
   role: UserRole;
   isPuterUser: boolean;
+  grudgeId?: string;
   walletAddress?: string;
   createdAt: string;
   lastLogin: string;
@@ -55,22 +57,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initAuth = async () => {
       setPuterAvailable(isPuterAvailable());
       
+      // 1. Try to restore from localStorage
+      let restoredUser: AuthUser | null = null;
       const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
       if (storedUser) {
         try {
-          const parsed = JSON.parse(storedUser) as AuthUser;
-          setUser(parsed);
+          restoredUser = JSON.parse(storedUser) as AuthUser;
+          setUser(restoredUser);
         } catch {
           localStorage.removeItem(AUTH_STORAGE_KEY);
         }
       }
       
+      // 2. Override with live Puter session if signed in
       if (isPuterAvailable() && isPuterSignedIn()) {
         const puterUser = getPuterUser();
         if (puterUser) {
           const authUser = puterUserToAuthUser(puterUser);
+          restoredUser = authUser;
           setUser(authUser);
           localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+        }
+      }
+      
+      // 3. Enrich with Grudge SDK identity (adds grudgeId)
+      const sdkIdentity = grudgeSDK.currentIdentity;
+      if (sdkIdentity) {
+        if (restoredUser) {
+          const enriched = { ...restoredUser, grudgeId: sdkIdentity.grudgeId };
+          setUser(enriched);
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(enriched));
+        } else {
+          // SDK-only session (e.g. credentials login stored in SDK)
+          const sdkUser: AuthUser = {
+            id: sdkIdentity.grudgeId,
+            username: sdkIdentity.username,
+            displayName: sdkIdentity.username,
+            grudgeId: sdkIdentity.grudgeId,
+            role: 'user',
+            isPuterUser: false,
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString(),
+          };
+          setUser(sdkUser);
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(sdkUser));
         }
       }
       
@@ -102,10 +132,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const puterUser = await puterSignIn();
       if (puterUser) {
-        const authUser = puterUserToAuthUser(puterUser);
+        let authUser = puterUserToAuthUser(puterUser);
+        // Link Grudge SDK identity
+        if (grudgeSDK.isEnabled) {
+          const sdkResult = await grudgeSDK.connectWithPuter();
+          if (sdkResult.success && grudgeSDK.currentIdentity) {
+            authUser = { ...authUser, grudgeId: grudgeSDK.currentIdentity.grudgeId };
+          }
+        }
         setUser(authUser);
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
-        console.log('[Auth] Puter sign-in successful:', authUser.username);
+        console.log('[Auth] Puter sign-in successful:', authUser.username, authUser.grudgeId ? `(Grudge: ${authUser.grudgeId})` : '');
         return true;
       }
       return false;
@@ -119,6 +156,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username: string, 
     password: string
   ): Promise<{ success: boolean; error?: string }> => {
+    // Try Grudge SDK first if enabled
+    if (grudgeSDK.isEnabled) {
+      try {
+        const sdkResult = await grudgeSDK.connectWithCredentials(username, password);
+        if (sdkResult.success && grudgeSDK.currentIdentity) {
+          const identity = grudgeSDK.currentIdentity;
+          const authUser: AuthUser = {
+            id: identity.grudgeId,
+            username,
+            displayName: username,
+            grudgeId: identity.grudgeId,
+            role: 'user',
+            isPuterUser: false,
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString(),
+          };
+          setUser(authUser);
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authUser));
+          return { success: true };
+        }
+      } catch {}
+    }
+    // Fallback: local auth API
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -133,6 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           id: data.user.id,
           username: data.user.username,
           displayName: data.user.displayName || data.user.username,
+          grudgeId: data.user.grudgeId,
           role: data.user.role || 'user',
           isPuterUser: false,
           createdAt: data.user.createdAt || new Date().toISOString(),
@@ -201,6 +262,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user?.isPuterUser) {
       await puterSignOut();
     }
+    grudgeSDK.disconnect();
     setUser(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
     console.log('[Auth] Signed out');
