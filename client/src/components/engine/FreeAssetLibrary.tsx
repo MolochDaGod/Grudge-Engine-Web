@@ -21,22 +21,21 @@ interface FreeAsset {
 }
 
 const FREE_ASSET_SOURCES: FreeAsset[] = [
-  // === INSTALLED IN ENGINE ===
-  { id: 'inst-1', name: 'Kenney Pirate Kit (66 models)', type: 'model', source: 'Kenney • Installed', sourceUrl: 'https://kenney.nl/assets/pirate-kit', tags: ['pirate', 'ships', 'barrels', 'treasure', 'installed'], license: 'CC0' },
-  { id: 'inst-2', name: 'Kenney Medieval Kit (105 models)', type: 'model', source: 'Kenney • Installed', sourceUrl: 'https://kenney.nl/assets/medieval-rts', tags: ['medieval', 'buildings', 'props', 'castle', 'installed'], license: 'CC0' },
-  { id: 'inst-3', name: 'Kenney Dungeon Kit (37 models)', type: 'model', source: 'Kenney • Installed', sourceUrl: 'https://kenney.nl/assets/dungeon-kit', tags: ['dungeon', 'corridors', 'rooms', 'gates', 'installed'], license: 'CC0' },
-  { id: 'inst-4', name: 'Kenney Prototype Kit (145 models)', type: 'model', source: 'Kenney • Installed', sourceUrl: 'https://kenney.nl/assets/prototype-kit', tags: ['prototype', 'blocks', 'shapes', 'grey', 'installed'], license: 'CC0' },
-  { id: 'inst-5', name: 'Quaternius Monster Pack (4 animated)', type: 'model', source: 'Quaternius • Installed', sourceUrl: 'https://quaternius.com/', tags: ['monster', 'bat', 'dragon', 'skeleton', 'slime', 'installed'], license: 'CC0' },
-  { id: 'inst-6', name: 'Easy Enemies Pack (6 creatures)', type: 'model', source: 'Installed', sourceUrl: 'https://quaternius.com/', tags: ['enemy', 'frog', 'rat', 'snake', 'spider', 'wasp', 'installed'], license: 'CC0' },
-  { id: 'inst-7', name: 'Men Characters Pack (8 animated)', type: 'model', source: 'Installed', sourceUrl: 'https://quaternius.com/', tags: ['character', 'humanoid', 'male', 'animated', 'installed'], license: 'CC0' },
-  { id: 'inst-8', name: 'KayKit Adventurers', type: 'model', source: 'KayKit • Installed', sourceUrl: 'https://kaylousberg.com/', tags: ['adventurer', 'character', 'animated', 'installed'], license: 'CC0' },
-  { id: 'inst-9', name: 'KayKit Animations (Large/Medium Rig)', type: 'model', source: 'KayKit • Installed', sourceUrl: 'https://kaylousberg.com/', tags: ['animation', 'combat', 'melee', 'ranged', 'installed'], license: 'CC0' },
-  { id: 'inst-10', name: 'Action Adventure Animations (22 clips)', type: 'model', source: 'Mixamo • Installed', sourceUrl: 'https://mixamo.com/', tags: ['stealth', 'sneak', 'roll', 'cover', 'animation', 'installed'], license: 'Free' },
-  { id: 'inst-11', name: 'Warrior Character + 52 Animations', type: 'model', source: 'Racalvin • Installed', sourceUrl: 'https://sketchfab.com/', tags: ['warrior', 'orc', 'combat', 'sword', 'player', 'installed'], license: 'Free' },
-  { id: 'inst-12', name: 'Survival Props Pack (59 items)', type: 'model', source: 'Installed', sourceUrl: 'https://quaternius.com/', tags: ['survival', 'tools', 'camping', 'food', 'weapons', 'installed'], license: 'CC0' },
-  { id: 'inst-13', name: 'Environment Scenes (4 GLTF scenes)', type: 'model', source: 'Installed', sourceUrl: '', tags: ['environment', 'floating', 'pirate', 'fantasy', 'island', 'installed'], license: 'Free' },
+  // === GRUDGE 6 RACE CHARACTERS (ONLY - with mesh armours + weapons on the asset) ===
+  // These are the canonical Grudge 6 race characters. No Keeny, Kenney, Quaternius, KayKit, Mixamo or other groups for characters.
+  { id: 'g6-human', name: 'Grudge6 Human Race (mesh armours + weapons)', type: 'model', source: 'Grudge 6', sourceUrl: '', tags: ['grudge6', 'race', 'character', 'human', 'mesh-armour', 'weapons', 'installed'], license: 'Internal' },
+  { id: 'g6-barbarian', name: 'Grudge6 Barbarian Race (mesh armours + weapons)', type: 'model', source: 'Grudge 6', sourceUrl: '', tags: ['grudge6', 'race', 'character', 'barbarian', 'mesh-armour', 'weapons', 'installed'], license: 'Internal' },
+  { id: 'g6-dwarf', name: 'Grudge6 Dwarf Race (mesh armours + weapons)', type: 'model', source: 'Grudge 6', sourceUrl: '', tags: ['grudge6', 'race', 'character', 'dwarf', 'mesh-armour', 'weapons', 'installed'], license: 'Internal' },
+  { id: 'g6-elf', name: 'Grudge6 Elf Race (mesh armours + weapons)', type: 'model', source: 'Grudge 6', sourceUrl: '', tags: ['grudge6', 'race', 'character', 'elf', 'mesh-armour', 'weapons', 'installed'], license: 'Internal' },
+  { id: 'g6-orc', name: 'Grudge6 Orc Race (mesh armours + weapons)', type: 'model', source: 'Grudge 6', sourceUrl: '', tags: ['grudge6', 'race', 'character', 'orc', 'mesh-armour', 'weapons', 'installed'], license: 'Internal' },
+  { id: 'g6-undead', name: 'Grudge6 Undead Race (mesh armours + weapons)', type: 'model', source: 'Grudge 6', sourceUrl: '', tags: ['grudge6', 'race', 'character', 'undead', 'mesh-armour', 'weapons', 'installed'], license: 'Internal' },
+  { id: 'g6-warrior', name: 'Grudge6 Warrior + mesh armours/weapons + animations', type: 'model', source: 'Grudge 6', sourceUrl: '', tags: ['grudge6', 'warrior', 'character', 'combat', 'sword', 'player', 'mesh-armour', 'weapons', 'installed'], license: 'Internal' },
 
-  // === POLY HAVEN ===
+  // === INSTALLED PROPS / ENV (non-character) ===
+  { id: 'inst-props-1', name: 'Survival Props Pack (59 items)', type: 'model', source: 'Installed', sourceUrl: '', tags: ['props', 'tools', 'camping', 'food', 'weapons', 'installed'], license: 'CC0' },
+  { id: 'inst-props-2', name: 'Environment Scenes (floating islands, pirate, fantasy)', type: 'model', source: 'Installed', sourceUrl: '', tags: ['environment', 'scene', 'island', 'fantasy', 'installed'], license: 'Free' },
+
+  // === POLY HAVEN (HDRI + textures) ===
   { id: 'ph-1', name: 'Studio Small 09', type: 'hdri', source: 'Poly Haven', sourceUrl: 'https://polyhaven.com/a/studio_small_09', tags: ['studio', 'lighting', 'indoor'], license: 'CC0' },
   { id: 'ph-2', name: 'Kloppenheim 06', type: 'hdri', source: 'Poly Haven', sourceUrl: 'https://polyhaven.com/a/kloppenheim_06', tags: ['outdoor', 'sky', 'sunset'], license: 'CC0' },
   { id: 'ph-3', name: 'Forest Path', type: 'hdri', source: 'Poly Haven', sourceUrl: 'https://polyhaven.com/a/forest_path_01', tags: ['nature', 'forest', 'outdoor'], license: 'CC0' },
@@ -48,7 +47,7 @@ const FREE_ASSET_SOURCES: FreeAsset[] = [
   { id: 'ph-9', name: 'Rock Ground 01', type: 'texture', source: 'Poly Haven', sourceUrl: 'https://polyhaven.com/a/rock_ground_01', tags: ['rock', 'stone', 'ground'], license: 'CC0' },
   { id: 'ph-10', name: 'Sand 01', type: 'texture', source: 'Poly Haven', sourceUrl: 'https://polyhaven.com/a/sand_01', tags: ['sand', 'beach', 'desert'], license: 'CC0' },
 
-  // === AMBIENTCG ===
+  // === AMBIENTCG (textures) ===
   { id: 'acg-1', name: 'Metal 001', type: 'texture', source: 'AmbientCG', sourceUrl: 'https://ambientcg.com/view?id=Metal001', tags: ['metal', 'industrial', 'shiny'], license: 'CC0' },
   { id: 'acg-2', name: 'Concrete 022', type: 'texture', source: 'AmbientCG', sourceUrl: 'https://ambientcg.com/view?id=Concrete022', tags: ['concrete', 'wall', 'urban'], license: 'CC0' },
   { id: 'acg-3', name: 'Fabric 032', type: 'texture', source: 'AmbientCG', sourceUrl: 'https://ambientcg.com/view?id=Fabric032', tags: ['fabric', 'cloth', 'soft'], license: 'CC0' },
@@ -57,34 +56,7 @@ const FREE_ASSET_SOURCES: FreeAsset[] = [
   { id: 'acg-6', name: 'Ice 001', type: 'texture', source: 'AmbientCG', sourceUrl: 'https://ambientcg.com/view?id=Ice001', tags: ['ice', 'snow', 'winter'], license: 'CC0' },
   { id: 'acg-7', name: 'Lava 002', type: 'texture', source: 'AmbientCG', sourceUrl: 'https://ambientcg.com/view?id=Lava002', tags: ['lava', 'fire', 'volcanic'], license: 'CC0' },
 
-  // === KENNEY (MORE PACKS) ===
-  { id: 'k-1', name: 'Platformer Pack', type: 'model', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/platformer-kit', tags: ['platformer', 'game', 'lowpoly'], license: 'CC0' },
-  { id: 'k-2', name: 'Space Kit', type: 'model', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/space-kit', tags: ['space', 'scifi', 'ships'], license: 'CC0' },
-  { id: 'k-3', name: 'Nature Kit', type: 'model', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/nature-kit', tags: ['nature', 'trees', 'rocks'], license: 'CC0' },
-  { id: 'k-4', name: 'City Kit', type: 'model', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/city-kit-commercial', tags: ['city', 'buildings', 'urban'], license: 'CC0' },
-  { id: 'k-5', name: 'Tower Defense Kit', type: 'model', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/tower-defense-kit', tags: ['tower', 'defense', 'game'], license: 'CC0' },
-  { id: 'k-6', name: 'Castle Kit', type: 'model', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/castle-kit', tags: ['castle', 'fortress', 'medieval'], license: 'CC0' },
-  { id: 'k-7', name: 'Furniture Kit', type: 'model', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/furniture-kit', tags: ['furniture', 'interior', 'props'], license: 'CC0' },
-  { id: 'k-8', name: 'Mini Dungeon', type: 'model', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/mini-dungeon', tags: ['dungeon', 'rpg', 'lowpoly'], license: 'CC0' },
-  { id: 'k-9', name: 'Sci-Fi RTS', type: 'model', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/sci-fi-rts', tags: ['scifi', 'rts', 'units'], license: 'CC0' },
-  { id: 'k-10', name: 'UI Pack', type: 'texture', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/ui-pack', tags: ['ui', 'buttons', 'interface'], license: 'CC0' },
-  { id: 'k-11', name: 'Game Icons', type: 'texture', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/game-icons', tags: ['icons', 'ui', 'hud'], license: 'CC0' },
-
-  // === QUATERNIUS ===
-  { id: 'q-1', name: 'Ultimate Characters', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/ultimatecharacters.html', tags: ['characters', 'humanoid', 'animated'], license: 'CC0' },
-  { id: 'q-2', name: 'Low Poly Vehicles', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/lowpolyvehicles.html', tags: ['vehicles', 'cars', 'lowpoly'], license: 'CC0' },
-  { id: 'q-3', name: 'Fantasy Town', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/fantasytown.html', tags: ['fantasy', 'buildings', 'medieval'], license: 'CC0' },
-  { id: 'q-4', name: 'Animated Animals', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/animatedanimals.html', tags: ['animals', 'animated', 'nature'], license: 'CC0' },
-  { id: 'q-5', name: 'Tropical Jungle', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/tropicaljungle.html', tags: ['jungle', 'tropical', 'trees'], license: 'CC0' },
-  { id: 'q-6', name: 'Zombie Pack', type: 'model', source: 'Quaternius', sourceUrl: 'https://quaternius.com/packs/zombiepack.html', tags: ['zombie', 'horror', 'animated'], license: 'CC0' },
-
-  // === SKETCHFAB ===
-  { id: 'sf-1', name: 'Sketchfab Free Models', type: 'model', source: 'Sketchfab', sourceUrl: 'https://sketchfab.com/features/free-3d-models', tags: ['various', 'community', 'glb'], license: 'Free' },
-
-  // === MIXAMO ===
-  { id: 'mx-1', name: 'Mixamo Character Animations', type: 'model', source: 'Mixamo', sourceUrl: 'https://mixamo.com/', tags: ['animation', 'humanoid', 'rigged', 'combat'], license: 'Free' },
-
-  // === AUDIO ===
+  // === AUDIO (CC0) ===
   { id: 'a-1', name: 'Impact Sounds', type: 'audio', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/impact-sounds', tags: ['impact', 'sfx', 'action'], license: 'CC0' },
   { id: 'a-2', name: 'Interface Sounds', type: 'audio', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/interface-sounds', tags: ['ui', 'click', 'interface'], license: 'CC0' },
   { id: 'a-3', name: 'RPG Audio', type: 'audio', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/rpg-audio', tags: ['rpg', 'fantasy', 'music'], license: 'CC0' },
@@ -92,6 +64,9 @@ const FREE_ASSET_SOURCES: FreeAsset[] = [
   { id: 'a-5', name: 'Sci-Fi Sounds', type: 'audio', source: 'Kenney', sourceUrl: 'https://kenney.nl/assets/sci-fi-sounds', tags: ['scifi', 'laser', 'tech'], license: 'CC0' },
   { id: 'a-6', name: 'Freesound.org', type: 'audio', source: 'Freesound', sourceUrl: 'https://freesound.org/', tags: ['sfx', 'ambient', 'community'], license: 'Free' },
   { id: 'a-7', name: 'OpenGameArt Music', type: 'audio', source: 'OpenGameArt', sourceUrl: 'https://opengameart.org/content/browse-by-type/music', tags: ['music', 'loops', 'bgm'], license: 'Free' },
+
+  // === OTHER PROPS (non character humanoids) ===
+  { id: 'sf-1', name: 'Sketchfab Free Models (props/vehicles)', type: 'model', source: 'Sketchfab', sourceUrl: 'https://sketchfab.com/features/free-3d-models', tags: ['props', 'vehicles', 'various', 'glb'], license: 'Free' },
 ];
 
 function getAssetIcon(type: string) {
@@ -152,12 +127,11 @@ export function FreeAssetLibrary() {
   };
 
   const sources = [
-    { name: 'Poly Haven', url: 'https://polyhaven.com', description: 'CC0 HDRIs, textures, and 3D models' },
+    { name: 'Grudge 6', url: '', description: 'Canonical Grudge 6 race characters with mesh armours + weapons' },
+    { name: 'Poly Haven', url: 'https://polyhaven.com', description: 'CC0 HDRIs, textures' },
     { name: 'AmbientCG', url: 'https://ambientcg.com', description: 'CC0 PBR materials' },
-    { name: 'Kenney', url: 'https://kenney.nl', description: 'CC0 game assets and audio' },
-    { name: 'Quaternius', url: 'https://quaternius.com', description: 'CC0 low-poly 3D models' },
-    { name: 'Mixamo', url: 'https://mixamo.com', description: 'Free character animations (requires account)' },
-    { name: 'Sketchfab', url: 'https://sketchfab.com/features/free-3d-models', description: 'Free 3D models (various licenses)' },
+    { name: 'Kenney (props/audio only)', url: 'https://kenney.nl', description: 'CC0 props, audio (no characters)' },
+    { name: 'Sketchfab (props)', url: 'https://sketchfab.com/features/free-3d-models', description: 'Free props/vehicles (no outsider characters)' },
   ];
 
   return (

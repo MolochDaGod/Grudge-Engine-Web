@@ -1,5 +1,15 @@
 // Puter.js utilities using CDN version (window.puter)
 // The CDN script is loaded in index.html: <script src="https://js.puter.com/v2/"></script>
+//
+// REVIEW FOR CONSISTENCY WITH GRUDGE SYSTEMS:
+// - Auth: PRIMARY is Grudge ID (id.grudge-studio.com SSO + tokens for games/launcher).
+//   Puter auth is SECONDARY / linked only (for Puter-hosted apps/cloud).
+//   Never two inconsistent auth: always link Puter user to Grudge ID via grudgeSDK or puterSSO.
+// - Storage/AI/Hosting: Puter only when !isGrudgeHosted or user opts in.
+// - Old auth-gateway (flax etc) deprecated - all point to id.grudge now.
+// - Puter worker (grudge-studio-api.puter.work): use Puter hosting or relative /api when on puter.
+//   The server/puter-services provide the API when deployed on Puter.
+// - No duplication: Grudge for identity/game, Puter for user-pays cloud. Link accounts.
 
 export interface PuterUser {
   uuid: string;

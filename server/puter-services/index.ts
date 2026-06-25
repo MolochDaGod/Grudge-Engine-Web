@@ -1,5 +1,12 @@
 // Puter Services - Main Export
 // Consolidates all Puter cloud services for the Express backend
+// 
+// CONSISTENCY REVIEW:
+// - This is for Puter cloud (fs, kv, ai) when the app is puter.work hosted.
+// - Auth is ALWAYS Grudge ID primary (see routes or client AuthContext).
+// - Link Puter <-> Grudge ID to avoid two systems.
+// - Old gateways (auth-gateway-flax etc) removed from code; use https://id.grudge-studio.com
+// - If grudge-studio-api.puter.work not found: create the Puter app and deploy server/index.ts adapted for puter worker/hosting.
 
 export {
   initializePuter,

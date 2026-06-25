@@ -1,24 +1,33 @@
 /**
- * animation-manifest.ts — Grudge Warlords animation reference
+ * animation-manifest.ts — Grudge Studio canonical animation reference (THE BRIDGE)
  *
- * Maps every race × class × weapon combo to the Mixamo clip names that live
- * inside the corresponding GLB file.  Keep this as the single source of truth;
- * the HavokCharacterController reads from it at runtime.
+ * This is THE central organizational bridge between raw asset files and runtime GrudgeController.
+ * All 3D games and experiences in Grudge Studio MUST go through GrudgeController + this manifest.
  *
- * How Mixamo clip names work
- * ──────────────────────────
- * When you export from Mixamo the animation group name inside the GLB is the
- * clip name you typed (or left as-is) on the Mixamo website.  We normalise
- * them to lower-case snake_case here so matching is case-insensitive.
+ * See CANONICAL_MAP.md — "Assets Organization & Bridges" section for full architecture.
  *
- * Source animation packs used
- * ───────────────────────────
- *   Rifle 8-Way Locomotion Pack  → combat strafing for Rangers / gun users
- *   Longbow Locomotion Pack      → bow drawn locomotion for Rangers / Elves
- *   Male Injured Pack            → low-health / debuff animations (< 5% HP)
- *   Standard Mixamo              → base locomotion (idle, walk, run, jump)
- *   character_fight (scene.gltf) → melee combo sequences
+ * Organization:
+ * - Races point to grudge6 Meshy base models (25-bone, no fingers).
+ * - Animations are Mixamo-based + custom; shared via normalize + retarget.
+ * - Per-weapon clip mapping allows deterministic state -> anim lookup.
+ * - Gun support: aim/shoot clips + special grips + IK.
+ *
+ * How clip names work
+ * ───────────────────
+ * Exact names (case-insensitive) of animation groups inside the character GLBs.
+ * 25-bone Meshy rigs (grudge6 characters).
+ *
+ * Weapon skills T0 mapping (1-5 hotkeys) lives in:
+ *   grudgedot-launcher/shared/wcs/definitions/weaponSkills.ts
+ * Use getClipForWeaponSkill() below or GrudgeController.performSkill(slot).
+ *
+ * Bridges to other systems:
+ * - Loaders call normalizeMixamoBoneNames + retargetMixamoAnimation after useGLTF.
+ * - GrudgeController uses grips + this for equip/aim/performSkill.
+ * - Feet root normalization happens alongside (see GrudgeController).
  */
+
+import * as THREE from 'three';
 
 // ── Race → model path ─────────────────────────────────────────────────────────
 
@@ -30,19 +39,22 @@ export type CharClass = 'warrior' | 'mage' | 'ranger' | 'worg';
  * Override per-project via CharacterManifest.raceModelPath[race].
  */
 export const RACE_MODEL_PATHS: Record<Race, string> = {
-  human:     '/models/characters/human.glb',
-  barbarian: '/models/characters/barbarian.glb',
-  undead:    '/models/characters/undead.glb',
-  orc:       '/models/characters/orc.glb',
-  elf:       '/models/characters/elf.glb',
-  dwarf:     '/models/characters/dwarf.glb',
+  // Grudge 6 ONLY - the race characters with mesh armours and weapons.
+  // All models now use consistent 25-bone Meshy skeletons (no fingers) for low-cost high-quality.
+  // Prefer https://grudge6.grudge-studio.com/models/characters/ for real exports.
+  // See character-animation-controller.ts for hand bone grips + deterministic AI controllers.
+  human:     '/assets/characters/races/human/human-base.glb',
+  barbarian: '/assets/characters/races/barbarian/barbarian-base.glb',
+  undead:    '/assets/characters/races/undead/undead-base.glb',
+  orc:       '/assets/characters/races/orc/orc-base.glb',
+  elf:       '/assets/characters/races/elf/elf-base.glb',
+  dwarf:     '/assets/characters/races/dwarf/dwarf-base.glb',
 };
 
 /**
- * Fallback: Idle animation GLB that includes the Mixamo character mesh.
- * Used when a race model fails to load.
+ * Fallback (prefer the Grudge 6 race models above).
  */
-export const XBOT_FALLBACK = '/models/characters/x-bot.glb';
+export const XBOT_FALLBACK = '/assets/characters/races/barbarian/barbarian-base.glb';
 
 /**
  * Additional one-shot animation clips that can be loaded and merged at
@@ -422,6 +434,110 @@ export function findAnimationGroup(
   return null;
 }
 
+/**
+ * Normalize bone names for Mixamo imports and sharing.
+ * Strips 'mixamorig:' prefix and normalizes separators.
+ * Call this on skeleton bones after loading Mixamo models/animations.
+ */
+export function normalizeMixamoBoneNames( skeletonOrScene: any ) {
+  const bones = skeletonOrScene.isObject3D 
+    ? [] as any[] 
+    : (skeletonOrScene.bones || []);
+  
+  if (skeletonOrScene.isObject3D) {
+    skeletonOrScene.traverse((obj: any) => {
+      if (obj.isBone) {
+        obj.name = obj.name.replace(/mixamorig:|mixamorig/g, '').replace(/[_ ]/g, '');
+      }
+    });
+  } else {
+    bones.forEach((bone: any) => {
+      bone.name = bone.name.replace(/mixamorig:|mixamorig/g, '').replace(/[_ ]/g, '');
+    });
+  }
+}
+
+/**
+ * Retarget a Mixamo animation clip to a target skeleton for sharing animations.
+ * Matches bones by normalized name.
+ * Returns a new clip with tracks renamed to target bone names.
+ * Use this for animation sharing across different but structurally compatible rigs.
+ */
+export function retargetMixamoAnimation(
+  clip: THREE.AnimationClip,
+  targetSkeleton: THREE.Skeleton,
+  sourceSkeleton?: THREE.Skeleton
+): THREE.AnimationClip {
+  const tracks: THREE.KeyframeTrack[] = [];
+
+  const boneNameMap = new Map<string, string>();
+  
+  // Build map from normalized names
+  targetSkeleton.bones.forEach(bone => {
+    const norm = normalizeClipName(bone.name);
+    boneNameMap.set(norm, bone.name);
+  });
+
+  clip.tracks.forEach(track => {
+    // Track name format: "boneName.property"
+    let [bonePart, ...propParts] = track.name.split('.');
+    const normBone = normalizeClipName(bonePart);
+    const targetBoneName = boneNameMap.get(normBone);
+
+    if (targetBoneName) {
+      const newTrackName = [targetBoneName, ...propParts].join('.');
+      // Clone track with new name
+      const newTrack = track.clone();
+      (newTrack as any).name = newTrackName;
+      tracks.push(newTrack);
+    } else {
+      // Keep original if no match (e.g. root motion)
+      tracks.push(track);
+    }
+  });
+
+  return new THREE.AnimationClip(clip.name, clip.duration, tracks);
+}
+
+/**
+ * Canonical resolver: turn a weapon + hotkey slot (1-5) into the best clip name.
+ *
+ * This is the single place that knows T0 skill mapping for the GrudgeController.
+ *
+ * Slot semantics (exact match to user spec + weaponSkills.ts):
+ *   1 = main attack
+ *   2 = first skill
+ *   3 = maneuver / trap / teleport / dodge
+ *   4 = heavy / combo connector
+ *   5 = unique (button 5 spells for T1 starters too)
+ *
+ * Source of truth for skill names/data: grudgedot-launcher/shared/wcs/definitions/weaponSkills.ts
+ * All Grudge 3D games MUST use GrudgeController + this manifest.
+ */
+export function getClipForWeaponSkill(weapon: WeaponSlot, slot: 1 | 2 | 3 | 4 | 5): string {
+  // Map slot → primary locomotion/combat state key in the manifest
+  let state: LocomotionState = 'attack_1';
+
+  switch (slot) {
+    case 1: state = 'attack_1'; break;
+    case 2: state = 'attack_2'; break;
+    case 3: state = 'dodge'; break;           // maneuver
+    case 4: state = 'attack_3'; break;        // heavy
+    case 5: state = 'cast_1'; break;          // unique
+  }
+
+  // Weapon specific overrides for better feel
+  if (slot === 1 && (weapon === 'bow' || weapon === 'gun' || weapon === 'crossbow')) {
+    state = 'shoot';
+  }
+  if (slot === 2 && weapon === 'bow') state = 'aim';
+  if (slot === 3 && (weapon === 'staff' || weapon === 'wand')) state = 'cast_1'; // blink style
+  if (slot === 5) state = 'cast_2'; // unique often casty
+
+  const clip = resolveClipName(weapon, state);
+  return clip || resolveClipName(weapon, 'attack_1') || 'Idle';
+}
+
 // ── Race-specific model scale overrides ──────────────────────────────────────
 // Some races need different model scaling so they all stand at the same height.
 
@@ -458,6 +574,101 @@ export const AnimationManifest = {
   resolveClipName,
   normalizeClipName,
   findAnimationGroup,
+  normalizeMixamoBoneNames,
+  retargetMixamoAnimation,
+  getClipForWeaponSkill,
 };
 
 export default AnimationManifest;
+
+/**
+ * Asset Bridge Helper: Post-process a loaded grudge6 race model for full skeleton/animation sharing + bridges.
+ * Call immediately after useGLTF + scale in loaders.
+ * Handles:
+ * - Mixamo bone normalization for skeleton sharing
+ * - Feet root normalization (for Rapier physics - middle center of feet)
+ * - Hand grip creation
+ * - Retarget Mixamo anim clips for sharing across rigs
+ * - Returns enriched data ready for GrudgeController
+ *
+ * Usage in R3F loader (e.g. GrudgeCharacterModel):
+ * const processed = postProcessGrudgeRaceModel(scene, animations, scale);
+ * const mixer = new THREE.AnimationMixer(scene);
+ * // retarget and map actions using processed
+ * const controller = new GrudgeController(scene, mixer, actionsMap);
+ */
+export function postProcessGrudgeRaceModel(
+  scene: THREE.Group,
+  animations: THREE.AnimationClip[] = [],
+  scale = 1
+): {
+  scene: THREE.Group;
+  grips: Record<'left' | 'right', THREE.Object3D | null>;
+  normalizedAnimations: THREE.AnimationClip[];
+  footCenterOffset: THREE.Vector3;
+} {
+  scene.scale.setScalar(scale);
+  scene.updateMatrixWorld(true);
+
+  // 1. Mixamo skeleton sharing - normalize bones
+  normalizeMixamoBoneNames(scene);
+
+  // 2. Feet root for physics (middle center of feet)
+  let footCenter = new THREE.Vector3();
+  let leftFoot: THREE.Object3D | null = null;
+  let rightFoot: THREE.Object3D | null = null;
+  const footPats = ['leftfoot', 'lfoot', 'left_foot', 'rightfoot', 'rfoot', 'right_foot'];
+
+  scene.traverse((child: any) => {
+    if (child.isBone) {
+      const nm = child.name.toLowerCase().replace(/mixamorig:|_| /g, '');
+      if (!leftFoot && footPats.some(p => nm.includes('left') && (nm.includes('foot') || nm.includes('toe')))) leftFoot = child;
+      if (!rightFoot && footPats.some(p => nm.includes('right') && (nm.includes('foot') || nm.includes('toe')))) rightFoot = child;
+    }
+  });
+
+  if (leftFoot && rightFoot) {
+    const lp = new THREE.Vector3(); leftFoot.getWorldPosition(lp);
+    const rp = new THREE.Vector3(); rightFoot.getWorldPosition(rp);
+    footCenter = lp.clone().add(rp).multiplyScalar(0.5);
+    scene.position.sub(footCenter);
+    scene.position.y = 0; // root at feet center
+  }
+
+  // 3. Hand grips for weapons/guns (from previous work)
+  const grips: Record<'left' | 'right', THREE.Object3D | null> = { left: null, right: null };
+  const handPatterns = {
+    left: ['lefthand', 'left_hand', 'l_hand', 'leftwrist', 'l_wrist'],
+    right: ['righthand', 'right_hand', 'r_hand', 'rightwrist', 'r_wrist'],
+  };
+
+  scene.traverse((obj: any) => {
+    if (obj.isBone) {
+      const name = obj.name.toLowerCase().replace(/mixamorig:|_| /g, '');
+      (['left', 'right'] as const).forEach(side => {
+        if (!grips[side] && handPatterns[side].some(p => name.includes(p))) {
+          const grip = new THREE.Object3D();
+          grip.name = `${side}HandGrip`;
+          // Default offsets; overridden by GRIP_OFFSETS per weapon (incl. gun)
+          grip.position.set(0, 0.015 * scale, 0.07 * scale);
+          grip.rotation.set(-0.25, side === 'right' ? -0.05 : 0.05, 0);
+          obj.add(grip);
+          grips[side] = grip;
+        }
+      });
+    }
+  });
+  (scene as any).userData.handGrips = grips;
+
+  // 4. Retarget animations for sharing (Mixamo imports)
+  const normalizedAnimations = animations.map(clip => 
+    retargetMixamoAnimation(clip, (scene as any).skeleton || { bones: [] } as any)
+  );
+
+  return {
+    scene,
+    grips,
+    normalizedAnimations,
+    footCenterOffset: footCenter,
+  };
+}

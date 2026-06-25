@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username: string, 
     password: string
   ): Promise<{ success: boolean; error?: string }> => {
-    // Try Grudge SDK first if enabled
+    // Primary Grudge ID auth (id.grudge-studio.com) - Puter secondary/linked only. Consolidated, no duplicate inconsistent systems. Old gateways removed.
     if (grudgeSDK.isEnabled) {
       try {
         const sdkResult = await grudgeSDK.connectWithCredentials(username, password);

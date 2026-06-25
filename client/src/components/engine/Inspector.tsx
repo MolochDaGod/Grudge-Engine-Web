@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { RotateCcw, Plus, Trash2, ChevronDown, ChevronRight, Box, Sun, Camera, Atom, FileCode, Volume2, Sparkles, Package, Copy, Tag, Layers, X, Lock, Database, Palette, Gamepad2, Play, Square } from 'lucide-react';
+import { RotateCcw, Plus, Trash2, ChevronDown, ChevronRight, Box, Sun, Camera, Atom, FileCode, Volume2, Sparkles, Package, Copy, Tag, Layers, X, Lock, Database, Palette, Gamepad2, Play, Square, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -426,7 +426,7 @@ function CreatePrefabDialog({ objectId }: { objectId: string }) {
 }
 
 function TransformPanel() {
-  const { project, selectedObjectId, updateTransform, updateGameObject, deleteGameObject, addTag, removeTag, setLayer, getCurrentScene } = useEngineStore();
+  const { project, selectedObjectId, updateTransform, updateGameObject, deleteGameObject, addTag, removeTag, setLayer, getCurrentScene, addConsoleLog } = useEngineStore();
   const [newTag, setNewTag] = useState('');
   const currentScene = getCurrentScene();
   const selectedObject = currentScene?.objects.find(o => o.id === selectedObjectId);
@@ -480,6 +480,27 @@ function TransformPanel() {
             <RotateCcw className="w-3.5 h-3.5" />
           </Button>
           <CreatePrefabDialog objectId={selectedObject.id} />
+          {selectedObject.prefabId && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-xs"
+              onClick={() => {
+                const overrides = selectedObject.overrides || {};
+                const newOverridesStr = prompt('Edit overrides (JSON):', JSON.stringify(overrides));
+                if (newOverridesStr) {
+                  try {
+                    const newOverrides = JSON.parse(newOverridesStr);
+                    updateGameObject(selectedObject.id, { overrides: newOverrides });
+                    addConsoleLog({ type: 'info', message: `Overrides updated for prefab instance`, source: 'Prefab' });
+                  } catch(e) { alert('Invalid JSON'); }
+                }
+              }}
+              data-testid="button-edit-overrides"
+            >
+              Edit Overrides (editable prefab instance)
+            </Button>
+          )}
           <Button 
             variant="ghost" 
             size="icon" 
@@ -946,7 +967,7 @@ function ScriptsPanel() {
 }
 
 function PrefabsPanel() {
-  const { prefabs, instantiatePrefab, deletePrefab, project, addAssetToScene, addConsoleLog } = useEngineStore();
+  const { prefabs, instantiatePrefab, deletePrefab, updatePrefab, project, addAssetToScene, addConsoleLog } = useEngineStore();
   const prefabAssets = project?.assets.filter(a => a.type === 'prefab') || [];
 
   const isWarriorPrefab = (p: typeof prefabAssets[0]) => p.id === 'prefab-warrior' || p.metadata?.controllerType === 'warrior';
@@ -1026,6 +1047,35 @@ function PrefabsPanel() {
                     title="Instantiate"
                   >
                     <Copy className="w-3 h-3" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6"
+                    onClick={() => {
+                      const newName = prompt('Edit prefab name:', prefab.name);
+                      if (newName && newName !== prefab.name) {
+                        updatePrefab(prefab.id, { name: newName });
+                      }
+                    }}
+                    title="Edit Name (stable editable prefab)"
+                  >
+                    <Edit className="w-3 h-3" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6"
+                    onClick={() => {
+                      // Agentic dev on forge.grudge-studio.com: this prefab ID can be passed to AI agents
+                      // for generation, variation, or editing using the central prefab system (one source of truth)
+                      addConsoleLog({ type: 'info', message: `Prefab ${prefab.name} (${prefab.id}) exposed for agentic dev on forge.grudge-studio.com`, source: 'Agentic' });
+                      // Agents can call create/update/instantiate via scripts or Puter integration
+                      window.dispatchEvent(new CustomEvent('forge:expose-prefab', { detail: { id: prefab.id, name: prefab.name, data: prefab } }));
+                    }}
+                    title="Expose for Agentic Edit on forge.grudge-studio.com"
+                  >
+                    <Sparkles className="w-3 h-3" />
                   </Button>
                   <Button 
                     variant="ghost" 

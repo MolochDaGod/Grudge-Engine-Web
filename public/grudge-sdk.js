@@ -12,7 +12,7 @@
  *     const ai = await Grudge.ai.chat('Generate a quest for a level 5 warrior');
  *   </script>
  *
- * All auth flows go through id.grudge-studio.com
+ * All auth flows go through id.grudge-studio.com (primary Grudge ID; Puter linked for cloud only - no inconsistent duplicate auth systems)
  * All game data goes through api.grudge-studio.com
  * AI uses Puter.js (free, client-side) with backend fallback
  * NO direct database connections. Ever.

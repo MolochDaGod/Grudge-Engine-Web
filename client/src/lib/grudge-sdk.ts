@@ -45,7 +45,7 @@ const SDK_WALLET_KEY = 'grudge_wallet_address';
 
 function getDefaultConfig(): GrudgeSDKConfig {
   return {
-    authUrl: import.meta.env.VITE_AUTH_URL || 'https://id.grudge-studio.com',
+    authUrl: import.meta.env.VITE_AUTH_URL || 'https://id.grudge-studio.com', // primary; Puter for storage/AI only - consolidated, no two systems
     apiUrl: import.meta.env.VITE_API_URL || 'https://api.grudge-studio.com',
     accountUrl: import.meta.env.VITE_ACCOUNT_URL || 'https://account.grudge-studio.com',
     walletUrl: import.meta.env.VITE_WALLET_URL || 'https://wallet.grudge-studio.com',
@@ -278,6 +278,57 @@ class GrudgeSDKService {
       if (!resp.ok) return [];
       return resp.json();
     } catch { return []; }
+  }
+
+  async createCharacter(params: {
+    name: string;
+    raceId: string;
+    classId: string;
+    model3d?: any;
+    equipment?: any;
+    source?: string;
+  }): Promise<any> {
+    // Match the payload structure used by GSC (grudgeAPI.js) so the character
+    // appears properly in the user's GSC account and game inventory.
+    const body = {
+      name: params.name,
+      raceId: params.raceId,
+      classId: params.classId,
+      equipment: params.equipment || {
+        mainHand: null, offHand: null, head: null, chest: null,
+        legs: null, feet: null, back: null,
+      },
+      inventory: [
+        { itemId: 'tool_stone_axe', quantity: 1, tier: 1 },
+        { itemId: 'food_bread', quantity: 3, tier: 1 },
+      ],
+      model3d: {
+        baseModelId: params.raceId,
+        equippedMeshes: params.model3d?.equippedMeshes || {},
+        weaponSlots: params.model3d?.weaponSlots || {},
+        faceVariant: params.model3d?.faceVariant || 'A',
+        skinColor: params.model3d?.skinColor || '#e8c39e',
+        armorColor: params.model3d?.armorColor || '#555',
+        capeEnabled: false,
+        scale: 1.0,
+        // Link to the actual grudge6 GLB (mesh armours + weapons)
+        sourceUrl: params.model3d?.sourceUrl,
+        grudge6: true,
+      },
+      skillLoadouts: params.model3d?.skillLoadouts || {},
+      equippedWeaponId: null,
+      skipAvatarGeneration: true,
+      source: params.source || 'training',
+    };
+    const resp = await this.grudgeFetch('/api/characters', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err?.error || `Create character failed: ${resp.status}`);
+    }
+    return resp.json();
   }
 
   async fetchWalletBalance(): Promise<{ sol: number; gbux: number } | null> {

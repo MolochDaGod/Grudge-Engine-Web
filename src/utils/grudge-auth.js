@@ -1,5 +1,5 @@
-/** grudge-auth.js — Grudge Auth Gateway: https://auth-gateway-otb8qmmyd-grudgenexus.vercel.app */
-export const GRUDGE_GATEWAY_URL='https://auth-gateway-otb8qmmyd-grudgenexus.vercel.app';
+/** grudge-auth.js — Grudge Auth primary: https://id.grudge-studio.com (consolidated, no duplicate systems) */
+export const GRUDGE_GATEWAY_URL = 'https://id.grudge-studio.com';
 export function getGrudgeToken(){return localStorage.getItem('grudge_auth_token')||null;}
 export function getGrudgeUser(){const t=getGrudgeToken();if(!t)return null;return{token:t,userId:localStorage.getItem('grudge_user_id')||null,grudgeId:localStorage.getItem('grudge_id')||null,username:localStorage.getItem('grudge_username')||'Player'};}
 export function isGrudgeAuthenticated(){return!!getGrudgeToken();}

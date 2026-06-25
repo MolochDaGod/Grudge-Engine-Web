@@ -636,14 +636,16 @@ export interface LoadedCharacter {
   dispose: () => void;
 }
 
-/** Race → GLB path mapping (matching Unity prefabs) */
+/** Race → GLB path mapping - Grudge 6 race characters ONLY (mesh armours + weapons support).
+ * Uses the canonical races/ bases. Swap base GLB for full grudge6 modular export as needed.
+ */
 export const RACE_MODELS: Record<string, { glb: string; scale: number }> = {
-  human:     { glb: '/assets/models/characters/crusaders_knight.glb', scale: 0.008 },
-  orc:       { glb: '/assets/models/characters/graatorc.glb',         scale: 0.008 },
-  elf:       { glb: '/assets/models/characters/elf_enforcer.glb',     scale: 0.008 },
-  undead:    { glb: '/assets/models/characters/skeletong_warrior.glb', scale: 0.008 },
-  barbarian: { glb: '/assets/models/characters/BarbarianGlad.glb',    scale: 0.008 },
-  dwarf:     { glb: '/assets/models/characters/dwarf_enforcer.glb',   scale: 0.006 },
+  human:     { glb: '/assets/characters/races/human/human-base.glb', scale: 1.0 },
+  orc:       { glb: '/assets/characters/races/orc/orc-base.glb',     scale: 1.0 },
+  elf:       { glb: '/assets/characters/races/elf/elf-base.glb',     scale: 1.0 },
+  undead:    { glb: '/assets/characters/races/undead/undead-base.glb', scale: 1.0 },
+  barbarian: { glb: '/assets/characters/races/barbarian/barbarian-base.glb', scale: 1.0 },
+  dwarf:     { glb: '/assets/characters/races/dwarf/dwarf-base.glb', scale: 1.0 },
 };
 
 /** Weapon → GLB path */

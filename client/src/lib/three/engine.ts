@@ -77,7 +77,10 @@ export function createThreeScene(canvas: HTMLCanvasElement): ThreeSceneContext {
   )
   camera.position.set(0, 8, 15)
 
-  // ── Controls ─────────────────────────────────────────────────────────────
+  // ── Controls (Camera system) ─────────────────────────────────────────────────
+  // Uses central settings from engine-store when available (one source of truth).
+  // For R3F path (three-demo training etc) prefer <CameraControls> + store.cameraSettings.
+  // Clear modes: orbit (editor), follow (player), etc. – only defined in store.
   const controls = new OrbitControls(camera, canvas)
   controls.enableDamping = true
   controls.dampingFactor = 0.08
@@ -86,6 +89,10 @@ export function createThreeScene(canvas: HTMLCanvasElement): ThreeSceneContext {
   controls.minDistance = 2
   controls.maxDistance = 200
   controls.screenSpacePanning = false
+
+  // Example: sync from central store (import { useEngineStore } from ... but in vanilla use getState)
+  // import { cameraService } from './engine-store' // (if refactored)
+  // cameraService.switchMode('follow') would update store, here you can react.
 
   // ── Post-processing ───────────────────────────────────────────────────────
   const composer = new EffectComposer(renderer)

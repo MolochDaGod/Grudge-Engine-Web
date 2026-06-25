@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { GameObject, Asset, Scene, Project, ConsoleLog, AnimationClip, Transform, Component, Prefab, ScriptableObject, ScriptableObjectType } from '@shared/schema';
+import { getAllPrefabs, CHARACTER_PREFABS, type CharacterPrefabConfig } from './prefabs';
 import { isPuterAvailable } from './puter';
 export { componentRegistry } from './componentRegistry';
 
@@ -113,6 +114,106 @@ export interface SnapSettings {
   rotate: number;
   scale: number;
 }
+
+// ── ONE SOURCE OF TRUTH for core engine systems (cameras, controllers, editing/settings)
+// These are inherent to any project/scene/demo usage. The store ensures they are defined/used ONLY ONCE (single source, initialized at app root).
+// All "projects" (editor, training, grudge game, etc.) consume from here without duplication.
+
+export type CameraMode = 'orbit' | 'follow' | 'firstPerson' | 'topDown' | 'cinematic';
+
+export interface CameraSettings {
+  mode: CameraMode;
+  fov: number;
+  near: number;
+  far: number;
+  followDistance: number;
+  followHeight: number;
+  orbitMinDistance: number;
+  orbitMaxDistance: number;
+  damping: number;
+  targetObjectId?: string | null; // for follow modes – single source
+}
+
+export type ControllerType = 'thirdPerson' | 'firstPerson' | 'topDown' | 'sideScroller';
+
+export interface ControllerSettings {
+  type: ControllerType;
+  moveSpeed: number;
+  sprintMultiplier: number;
+  jumpHeight: number;
+  gravity: number;
+  mouseSensitivity: number;
+  invertY: boolean;
+  enableGamepad: boolean;
+  // Inherent services like input mapping live here or in dedicated input service (one time setup)
+}
+
+export interface EditingSettings {
+  gizmoMode: 'translate' | 'rotate' | 'scale' | 'none';
+  snapEnabled: boolean;
+  showGrid: boolean;
+  showStats: boolean;
+  gridSize: number;
+  showHelpers: boolean;
+  postProcessEnabled: boolean;
+  inspectorAutoUpdate: boolean;
+  // One source for all editable "terms" (property schemas etc.)
+}
+
+// Defaults – one place, used to init the single store instance
+export const DEFAULT_CAMERA_SETTINGS: CameraSettings = {
+  mode: 'orbit',
+  fov: 60,
+  near: 0.1,
+  far: 1000,
+  followDistance: 8,
+  followHeight: 3,
+  orbitMinDistance: 1,
+  orbitMaxDistance: 200,
+  damping: 0.1,
+  targetObjectId: null,
+};
+
+export const DEFAULT_CONTROLLER_SETTINGS: ControllerSettings = {
+  type: 'thirdPerson',
+  moveSpeed: 5,
+  sprintMultiplier: 1.8,
+  jumpHeight: 8,
+  gravity: 20,
+  mouseSensitivity: 0.002,
+  invertY: false,
+  enableGamepad: true,
+};
+
+export const DEFAULT_EDITING_SETTINGS: EditingSettings = {
+  gizmoMode: 'translate',
+  snapEnabled: true,
+  showGrid: true,
+  showStats: true,
+  gridSize: 1,
+  showHelpers: true,
+  postProcessEnabled: true,
+  inspectorAutoUpdate: true,
+};
+
+// ── One-time services (inherent to engine use, only one instance via the Zustand store)
+// All "projects" (training, editor, grudge scenes, demos) use these without duplication or re-init.
+// "terms" = the types/enums. Services = logic called only through these.
+export const cameraService = {
+  switchMode: (mode: CameraMode) => useEngineStore.getState().setCameraSettings({ mode }),
+  setTarget: (id: string | null) => useEngineStore.getState().setCameraSettings({ targetObjectId: id }),
+  // Optimal R3F: pair with <CameraControls> or custom hook in three-demo / Viewport
+};
+
+export const controllerService = {
+  setType: (type: ControllerType) => useEngineStore.getState().setControllerSettings({ type }),
+  // Use with R3F input (drei useKeyboardControls) + Rapier controller (see rapier-physics)
+};
+
+export const editingService = {
+  setGizmo: (mode: EditingSettings['gizmoMode']) => useEngineStore.getState().setEditingSettings({ gizmoMode: mode }),
+  // All editing panels (Inspector, ProjectSettings etc) should read/write ONLY here
+};
 
 function loadSnapSettings(): SnapSettings {
   try {
@@ -240,6 +341,8 @@ interface EngineState {
   createPrefab: (name: string, object: GameObject) => Prefab;
   instantiatePrefab: (prefabId: string) => void;
   deletePrefab: (prefabId: string) => void;
+  updatePrefab: (prefabId: string, updates: Partial<Prefab>) => void; // for editable prefabs
+  getPrefab: (prefabId: string) => Prefab | undefined;
   
   setParent: (childId: string, parentId: string | null) => void;
   getChildren: (parentId: string) => GameObject[];
@@ -283,6 +386,16 @@ interface EngineState {
   setProjectSettings: (settings: Partial<ProjectSettings>) => void;
   setAudioSettings: (settings: Partial<AudioSettings>) => void;
   setSnapSettings: (settings: Partial<SnapSettings>) => void;
+
+  // Central single-source systems (see interfaces below)
+  cameraSettings: CameraSettings;
+  setCameraSettings: (settings: Partial<CameraSettings>) => void;
+
+  controllerSettings: ControllerSettings;
+  setControllerSettings: (settings: Partial<ControllerSettings>) => void;
+
+  editingSettings: EditingSettings;
+  setEditingSettings: (settings: Partial<EditingSettings>) => void;
 
   // Reactive queue for live GLB loading after assets are dropped into the scene
   pendingViewportLoads: PendingViewportLoad[];
@@ -415,6 +528,11 @@ export const useEngineStore = create<EngineState>((set, get) => ({
   projectSettings: loadProjectSettings(),
   audioSettings: loadAudioSettings(),
   snapSettings: loadSnapSettings(),
+
+  // Central one-source settings (inherent, single instance via Zustand store root)
+  cameraSettings: DEFAULT_CAMERA_SETTINGS,
+  controllerSettings: DEFAULT_CONTROLLER_SETTINGS,
+  editingSettings: DEFAULT_EDITING_SETTINGS,
   pendingViewportLoads: [],
   
   setProject: (project) => set({ project }),
@@ -1049,6 +1167,20 @@ export const useEngineStore = create<EngineState>((set, get) => ({
     set({ snapSettings: merged });
   },
 
+  // Central single-source updates (projects read these, no duplication)
+  setCameraSettings: (settings) => {
+    const merged = { ...get().cameraSettings, ...settings };
+    set({ cameraSettings: merged });
+  },
+  setControllerSettings: (settings) => {
+    const merged = { ...get().controllerSettings, ...settings };
+    set({ controllerSettings: merged });
+  },
+  setEditingSettings: (settings) => {
+    const merged = { ...get().editingSettings, ...settings };
+    set({ editingSettings: merged });
+  },
+
   consumePendingViewportLoads: () => {
     const loads = get().pendingViewportLoads;
     if (loads.length === 0) return [];
@@ -1056,7 +1188,67 @@ export const useEngineStore = create<EngineState>((set, get) => ({
     return loads;
   },
   
-  prefabs: [],
+  prefabs: (() => {
+    // Seed once from central source
+    try {
+      const all = getAllPrefabs();
+      return all.map((config: any) => ({
+        id: config.id,
+        name: config.name,
+        components: [
+          { id: crypto.randomUUID(), type: 'mesh', enabled: true, properties: { type: 'imported', modelPath: config.modelPath, textures: config.textures || {} } },
+          { id: crypto.randomUUID(), type: 'script', enabled: true, properties: { scriptType: config.controllerType || 'characterController', animations: config.animations || [], defaultAnimation: config.defaultAnimation } }
+        ],
+        transform: { position: {x:0,y:0,z:0}, rotation:{x:0,y:0,z:0}, scale:{x:config.scale||1,y:config.scale||1,z:config.scale||1} },
+        tags: config.tags || ['character', 'prefab'],
+        layer: config.layer || 0,
+        createdAt: new Date().toISOString(),
+        metadata: config
+      }));
+    } catch { return []; }
+  })(),
+  
+  // One source of truth for built-in stable prefabs - registered once
+  registerBuiltInPrefabs: () => {
+    const { prefabs } = get();
+    if (prefabs.length > 0) return; // only once
+    
+    // Convert from lib/prefabs (central source, one definition)
+    const allConfigs = getAllPrefabs();
+    const builtIns: Prefab[] = allConfigs.map((config: CharacterPrefabConfig) => ({
+      id: config.id,
+      name: config.name,
+      components: [{
+        id: crypto.randomUUID(),
+        type: 'mesh',
+        enabled: true,
+        properties: {
+          type: 'imported',
+          modelPath: config.modelPath,
+          textures: config.textures || {},
+        }
+      }, {
+        id: crypto.randomUUID(),
+        type: 'script',
+        enabled: true,
+        properties: {
+          scriptType: config.controllerType === 'warrior' ? 'warriorController' : 'characterController',
+          animations: config.animations || [],
+          defaultAnimation: config.defaultAnimation || 'Idle',
+          moveSpeed: 5,
+        }
+      }],
+      transform: { position: {x:0,y:0,z:0}, rotation:{x:0,y:0,z:0}, scale: {x:config.scale||1, y:config.scale||1, z:config.scale||1} },
+      tags: config.tags || ['prefab'],
+      layer: config.layer || 0,
+      createdAt: new Date().toISOString(),
+      // For editing: store original config
+      metadata: { ...config }
+    }));
+    
+    set({ prefabs: [...prefabs, ...builtIns] });
+    get().addConsoleLog({ type: 'info', message: `Registered ${builtIns.length} built-in stable prefabs (one source of truth)`, source: 'Prefab' });
+  },
   
   addComponent: (objectId, component) => set((state) => {
     const sceneIdx = get()._getCurrentSceneIndex();
@@ -1176,6 +1368,12 @@ export const useEngineStore = create<EngineState>((set, get) => ({
   deletePrefab: (prefabId) => set((state) => ({
     prefabs: state.prefabs.filter(p => p.id !== prefabId)
   })),
+  
+  updatePrefab: (prefabId, updates) => set((state) => ({
+    prefabs: state.prefabs.map(p => p.id === prefabId ? { ...p, ...updates } : p)
+  })),
+  
+  getPrefab: (prefabId) => get().prefabs.find(p => p.id === prefabId),
   
   scriptableObjects: [],
   

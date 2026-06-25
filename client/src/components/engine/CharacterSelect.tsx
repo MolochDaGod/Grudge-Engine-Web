@@ -175,7 +175,7 @@ export function CharacterSelect({ onEnterWorld }: CharacterSelectProps) {
         <div className="w-72 flex-shrink-0 flex flex-col border-r border-gray-800 bg-gray-900/30">
           <div className="flex-1 relative">
             <CharacterViewer
-              glbPath={`/models/characters/${selection.race}.glb`}
+              glbPath={`/assets/characters/races/${selection.race}/${selection.race}-base.glb`}
               scale={1.0}
               accentColor={cls.accentColor}
             />

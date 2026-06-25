@@ -769,6 +769,7 @@ export async function registerRoutes(
 
   app.get("/api/engine/status", async (req, res) => {
     const puterAvailable = isPuterAvailable();
+  // Note: Puter for cloud only. Auth consolidated to Grudge ID (no inconsistent duplicate systems with puter auth). Old gateways deprecated.
     res.json({
       name: "Grudge Engine",
       version: "1.0.0",

@@ -9,8 +9,26 @@
   },
   "routes": [
     { "src": "/api/health", "dest": "/api/health.ts" },
+    { "src": "/api/auth/(.*)", "dest": "https://id.grudge-studio.com/auth/$1" },
+    { "src": "/api/characters/(.*)", "dest": "https://api.grudge-studio.com/api/characters/$1" },
+    { "src": "/api/assets/(.*)", "dest": "https://assets.grudge-studio.com/$1" },
     { "src": "/api/(.*)", "dest": "/api/[...path].ts" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*\\.(png|jpg|jpeg|svg|ico|webp|glb))",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" }
+      ]
+    }
   ]
 }

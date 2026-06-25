@@ -114,7 +114,7 @@ export function GrudgeScene({ selection, onBack }: GrudgeSceneProps = {}) {
   const [mode, setMode]           = useState<'harvest' | 'combat'>('harvest');
   const [weapon, setWeapon]       = useState<WeaponSlot>('unarmed');
 
-  const race      = selection?.race          ?? 'human';
+  const race      = selection?.race          ?? 'barbarian'; // Grudge 6 race characters with mesh armours/weapons only
   const charClass = selection?.characterClass ?? 'warrior';
   const availWeapons: WeaponSlot[] = [
     ...CLASS_WEAPON_SLOTS[charClass as keyof typeof CLASS_WEAPON_SLOTS] ?? ['unarmed'],
